@@ -14,7 +14,7 @@ object ApplicationConstants {
 
 //    SDK AUTH PARAMS
     const val SDK_AUTH_TOKEN = "3d9686b635b15b5bc2d19800407609fa"
-    const val SDK_PROJECT_ID = "15Q89R"
+    const val SDK_PROJECT_ID = "Add your Onw Project Key Here"
 
 //    PREFS CONSTANTS
     const val isLogin = "isLogin"
