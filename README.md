@@ -26,7 +26,7 @@ Code setup
 * Click on “Get from Version Control” or if Android studio is alredy open goto File menu file new and select "Project From Version Control"
 * Select “Repository URL” from left menu
 * Select “Git” from Version control dropdown menu
-* Paste this URL "https://github.com/vdotok/Android-one2one.git" in URL section
+* Paste this URL "https://github.com/vdotok/Android-m2m.git" in URL section
 * click on clone button and wait for build .gradle files you can see the progress on bottom of android studio
 * let the android studio install the components, 
 * Hurrraaaa you Just configure the project in android studio
