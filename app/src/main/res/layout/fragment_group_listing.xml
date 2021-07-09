@@ -88,26 +88,40 @@
         app:layout_constraintStart_toStartOf="@+id/tv_no_conversation"
         app:layout_constraintTop_toBottomOf="@+id/btn_new_chat" />
 
-    <TextView
-        android:id="@+id/tv_logout"
-        style="@style/Theme_Button_DeActivated"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/ripple_effect_textview"
-        android:gravity="center"
-        android:padding="10dp"
-        android:layout_marginStart="84dp"
-        android:layout_marginEnd="82dp"
-        android:layout_marginTop="40dp"
-        android:stateListAnimator="@null"
-        android:text="@{String.format(@string/btn_log_out,username)}"
-        android:layout_marginBottom="60dp"
-        app:layout_constraintTop_toBottomOf="@id/barrierGroup"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/btn_refresh"
-        app:layout_constraintStart_toStartOf="@+id/btn_refresh" />
+        <FrameLayout
+            android:id="@+id/frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="84dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="82dp"
+            android:padding="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/btn_refresh"
+            app:layout_constraintStart_toStartOf="@+id/btn_refresh"
+            app:layout_constraintTop_toBottomOf="@id/barrierGroup">
 
+            <TextView
+                android:id="@+id/tv_logout"
+                style="@style/Theme_Button_DeActivated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="60dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/ripple_effect_textview"
+                android:gravity="center"
+                tools:text="Log out - chilli"
+                android:stateListAnimator="@null"
+                android:text="@{String.format(@string/btn_log_out,username)}" />
 
+            <ImageView
+                android:id="@+id/tv_led"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_gravity="end|top"
+                android:src="@drawable/led_error" />
+        </FrameLayout>
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLay"
         android:layout_width="0dp"
@@ -119,7 +133,7 @@
         app:layout_constraintTop_toBottomOf="@id/custom_toolbar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tv_logout">
+        app:layout_constraintBottom_toTopOf="@id/frame">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rcvUserList"

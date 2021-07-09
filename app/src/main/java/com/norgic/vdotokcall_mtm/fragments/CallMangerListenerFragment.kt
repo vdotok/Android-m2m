@@ -12,8 +12,8 @@ import com.norgic.vdotokcall_mtm.ui.dashboard.DashBoardActivity
  */
 abstract class CallMangerListenerFragment: Fragment(), FragmentRefreshListener {
 
-    override fun onAttach(activity: Activity) {
-        super.onAttach(activity)
+    override fun onStart() {
+        super.onStart()
         (activity as DashBoardActivity).mListener = this
     }
 }

@@ -1,6 +1,6 @@
 package com.norgic.vdotokcall_mtm.interfaces
 
-import com.norgic.vdotokcall_mtm.models.AcceptCallModel
+import com.norgic.callsdks.models.CallParams
 import com.norgic.vdotokcall_mtm.models.GroupModel
 import org.webrtc.VideoTrack
 
@@ -8,7 +8,7 @@ import org.webrtc.VideoTrack
  * Interface that are to be implemented in order provide callbacks to fragments
  * */
 interface FragmentRefreshListener {
-    fun onIncomingCall(model: AcceptCallModel)
+    fun onIncomingCall(model: CallParams)
     fun onStartCalling()
     fun outGoingCall(toPeer : GroupModel)
     //for video steam
@@ -18,7 +18,11 @@ interface FragmentRefreshListener {
     fun onCameraStreamReceived(stream: VideoTrack)
     fun onCameraAudioOff(audioState: Int, videoState: Int, refId: String)
     fun onCallMissed()
+    fun onCallerAlreadyBusy() {}
     fun onCallRejected(reason: String)
     fun onCallEnd() {}
+    fun onConnectionSuccess() {}
+    fun onConnectionFail() {}
     fun onParticipantLeftCall(refId: String?)
+    fun noAnsFromTarget() {}
 }

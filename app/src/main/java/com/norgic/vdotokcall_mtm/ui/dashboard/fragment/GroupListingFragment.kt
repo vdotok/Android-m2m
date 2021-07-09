@@ -2,7 +2,6 @@ package com.norgic.vdotokcall_mtm.ui.dashboard.fragment
 
 import android.content.Context
 import android.content.DialogInterface
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,14 +9,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
+import com.norgic.callsdks.CallClient
+import com.norgic.callsdks.enums.*
+import com.norgic.callsdks.models.CallParams
 import com.norgic.vdotokcall_mtm.R
 import com.norgic.vdotokcall_mtm.adapter.GroupsAdapter
 import com.norgic.vdotokcall_mtm.databinding.FragmentGroupListingBinding
 import com.norgic.vdotokcall_mtm.dialogs.UpdateGroupNameDialog
-import com.norgic.vdotokcall_mtm.extensions.hide
-import com.norgic.vdotokcall_mtm.extensions.show
-import com.norgic.vdotokcall_mtm.extensions.showSnackBar
-import com.norgic.vdotokcall_mtm.extensions.toggleVisibility
+import com.norgic.vdotokcall_mtm.extensions.*
 import com.norgic.vdotokcall_mtm.fragments.CallMangerListenerFragment
 import com.norgic.vdotokcall_mtm.models.*
 import com.norgic.vdotokcall_mtm.network.ApiService
@@ -30,13 +29,7 @@ import com.norgic.vdotokcall_mtm.ui.dashboard.DashBoardActivity
 import com.norgic.vdotokcall_mtm.utils.ApplicationConstants
 import com.norgic.vdotokcall_mtm.utils.safeApiCall
 import com.norgic.vdotokcall_mtm.utils.showDeleteGroupAlert
-import com.razatech.callsdks.CallClient
-import com.razatech.callsdks.enums.MediaType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.webrtc.ContextUtils.getApplicationContext
+import kotlinx.coroutines.*
 import org.webrtc.VideoTrack
 import retrofit2.HttpException
 
@@ -57,6 +50,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
     private var groupList = ArrayList<GroupModel>()
     var isVideoCall = false
     var user : String? = null
+    var viewFrag: View? = null
 
 
     override fun onCreateView(
@@ -65,15 +59,18 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
-        binding = FragmentGroupListingBinding.inflate(inflater, container, false)
-        prefs = Prefs(activity)
 
+        if (viewFrag == null) {
+
+            binding = FragmentGroupListingBinding.inflate(inflater, container, false)
+            prefs = Prefs(activity)
+
+            viewFrag = binding.root
+            init()
+        }
         CallClient.getInstance(activity as Context)?.let {
             callClient = it
         }
-
-        init()
-
 
         return binding.root
     }
@@ -208,6 +205,15 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (callClient.isConnected() == true) {
+            binding.tvLed.setImageResource(R.drawable.led_connected)
+        } else {
+            binding.tvLed.setImageResource(R.drawable.led_error)
+        }
+    }
+
     override fun onDeleteClick(position: Int) {
         dialogdeleteGroup(position)
     }
@@ -285,13 +291,21 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
 
         isVideoCall = isVideo
 
-        if (callClient.isSocketConnected() == true) {
-            (activity as DashBoardActivity).sessionId = callClient.dialMany2ManyCall(
-                prefs.loginInfo?.refId!!,
-                refIdList,
-                prefs.loginInfo?.mcToken!!,
-                if (isVideo) MediaType.VIDEO else MediaType.AUDIO
-            )
+        if (callClient.isConnected() == true) {
+
+            prefs.loginInfo?.let {
+
+                (activity as DashBoardActivity).diaMany2ManyCall(
+                    CallParams(
+                        refId = it.refId!!,
+                        toRefIds = refIdList,
+                        mediaType = if (isVideo) MediaType.VIDEO else MediaType.AUDIO,
+                        callType = CallType.MANY_TO_MANY,
+                        sessionType = SessionType.CALL,
+                        isAppAudio = false
+                    )
+                )
+            }
             outGoingCall(groupModel)
         } else {
             (activity as DashBoardActivity).connectClient()
@@ -328,16 +342,24 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
 //        TODO("Not yet implemented")
     }
 
+    override fun onConnectionSuccess() {
+        binding.tvLed.setImageResource(R.drawable.led_connected)
+    }
+
+    override fun onConnectionFail() {
+      binding.tvLed.setImageResource(R.drawable.led_error)
+    }
+
     override fun onParticipantLeftCall(refId: String?) {
     }
 
-    override fun onIncomingCall(model: AcceptCallModel) {
+    override fun onIncomingCall(model: CallParams) {
         activity?.runOnUiThread {
             val bundle = Bundle()
-            bundle.putParcelableArrayList("grouplist", groupList)
-            bundle.putString("userName", getUsername(model))
+            bundle.putParcelableArrayList(DialCallFragment.GROUP_LIST, groupList)
+            bundle.putString(DialCallFragment.USER_NAME, getUsername(model.refId))
             bundle.putParcelable(AcceptCallModel.TAG, model)
-            bundle.putBoolean("isIncoming", true)
+            bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, true)
             bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, model.mediaType == MediaType.VIDEO)
             Navigation.findNavController(binding.root).navigate(
                 R.id.action_open_dial_fragment,
@@ -349,11 +371,11 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
      * Function to get UserName at incoming side
      * @param model model object is used to get username from the list of user achieved from server
      * */
-    private fun getUsername(model: AcceptCallModel) : String? {
+    private fun getUsername(refId: String) : String? {
        groupList.let {
                 it.forEach { name ->
                     name.participants.forEach { username->
-                        if (username.refId?.equals(model.from) == true) {
+                        if (username.refId?.equals(refId) == true) {
                             user = username.fullname
                             return user
                         }
@@ -373,7 +395,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
         val bundle = Bundle()
         bundle.putParcelable(GroupModel.TAG, toPeer)
         bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, isVideo)
-        bundle.putBoolean("isIncoming", false)
+        bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, false)
         Navigation.findNavController(binding.root).navigate(R.id.action_open_dial_fragment, bundle)
     }
     /**

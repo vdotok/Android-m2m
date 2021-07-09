@@ -1,12 +1,8 @@
 package com.norgic.vdotokcall_mtm.utils
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.net.ConnectivityManager
 import android.view.View
-import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.FragmentActivity
-import com.norgic.vdotokcall_mtm.R
 import java.util.concurrent.TimeUnit
 
 fun Activity.hasNetworkAvailable(): Boolean {

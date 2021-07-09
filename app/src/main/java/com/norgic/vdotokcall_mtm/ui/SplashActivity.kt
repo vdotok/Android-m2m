@@ -13,10 +13,13 @@ import com.norgic.vdotokcall_mtm.extensions.toggleVisibility
 import com.norgic.vdotokcall_mtm.models.AuthenticationRequest
 import com.norgic.vdotokcall_mtm.models.AuthenticationResponse
 import com.norgic.vdotokcall_mtm.network.HttpResponseCodes
+import com.norgic.vdotokcall_mtm.network.Result
 import com.norgic.vdotokcall_mtm.network.RetrofitBuilder
 import com.norgic.vdotokcall_mtm.prefs.Prefs
 import com.norgic.vdotokcall_mtm.ui.account.AccountsActivity.Companion.createAccountsActivity
+import com.norgic.vdotokcall_mtm.ui.dashboard.DashBoardActivity.Companion.createDashboardActivity
 import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.API_ERROR
+import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.HTTP_CODE_NO_NETWORK
 import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.SDK_AUTH_TOKEN
 import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.SDK_PROJECT_ID
 import com.norgic.vdotokcall_mtm.utils.ViewUtils.setStatusBarGradient
@@ -26,9 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import com.norgic.vdotokcall_mtm.network.Result
-import com.norgic.vdotokcall_mtm.ui.dashboard.DashBoardActivity.Companion.createDashboardActivity
-import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.HTTP_CODE_NO_NETWORK
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding

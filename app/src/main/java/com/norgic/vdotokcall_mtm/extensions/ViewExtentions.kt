@@ -11,6 +11,10 @@ import android.widget.EditText
 import androidx.databinding.BindingAdapter
 import com.google.android.material.snackbar.Snackbar
 import com.norgic.vdotokcall_mtm.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 
 fun View.hide() {
@@ -102,4 +106,17 @@ fun Activity.hideKeyboard() {
     }
 }
 
+fun CoroutineScope.launchPeriodicAsync(
+    repeatMillis: Long,
+    action: () -> Unit
+) = this.async {
+    if (repeatMillis > 0) {
+        while (isActive) {
+            delay(repeatMillis)
+            action()
+        }
+    } else {
+        action()
+    }
+}
 

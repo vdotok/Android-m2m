@@ -1,25 +1,25 @@
 package com.norgic.vdotokcall_mtm.models
 
 import android.os.Parcelable
-import com.razatech.callsdks.enums.CallType
-import com.razatech.callsdks.enums.MediaType
-import com.razatech.callsdks.enums.SessionType
+import com.norgic.callsdks.enums.CallType
+import com.norgic.callsdks.enums.MediaType
+import com.norgic.callsdks.enums.SessionType
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class AcceptCallModel(
 
-        var from: String = "",
+    var from: String = "",
 
-        var sessionUUID: String = "",
+    var sessionUUID: String = "",
 
-        var requestID: String = "",
+    var requestID: String = "",
 
-        var deviceType: CallType,
+    var deviceType: CallType,
 
-        var mediaType: MediaType,
+    var mediaType: MediaType,
 
-        var sessionType: SessionType
+    var sessionType: SessionType
 
 ): Parcelable{
     companion object{

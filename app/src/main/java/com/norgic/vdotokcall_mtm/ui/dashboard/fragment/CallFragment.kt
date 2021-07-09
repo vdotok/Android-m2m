@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -16,6 +17,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
+import com.norgic.callsdks.CallClient
+import com.norgic.callsdks.models.CallParams
 import com.norgic.vdotokcall_mtm.R
 import com.norgic.vdotokcall_mtm.databinding.LayoutCallingUserBinding
 import com.norgic.vdotokcall_mtm.databinding.LayoutFragmentCallBinding
@@ -27,11 +30,9 @@ import com.norgic.vdotokcall_mtm.models.GroupModel
 import com.norgic.vdotokcall_mtm.models.Participants
 import com.norgic.vdotokcall_mtm.prefs.Prefs
 import com.norgic.vdotokcall_mtm.ui.dashboard.DashBoardActivity
-import com.norgic.vdotokcall_mtm.ui.dashboard.adapter.GridUserAdapter
 import com.norgic.vdotokcall_mtm.ui.dashboard.fragment.DialCallFragment
 import com.norgic.vdotokcall_mtm.utils.TimeUtils.getTimeFromSeconds
 import com.norgic.vdotokcall_mtm.utils.performSingleClick
-import com.razatech.callsdks.CallClient
 import kotlinx.android.synthetic.main.fragment_dial_call.view.*
 import kotlinx.android.synthetic.main.layout_calling_user.view.*
 import kotlinx.android.synthetic.main.layout_fragment_call.*
@@ -51,7 +52,7 @@ const val THRESHOLD_VALUE = 70.0f
  */
 class CallFragment : CallMangerListenerFragment() {
 
-    private var acceptCallModel: AcceptCallModel? = null
+    private var callParams: CallParams? = null
     private var isIncomingCall = false
     private lateinit var binding: LayoutFragmentCallBinding
 
@@ -66,7 +67,7 @@ class CallFragment : CallMangerListenerFragment() {
 
     private var isMuted = false
     private var isSpeakerOff = true
-    private var isVideoCall = false
+    private var isVideoCall = true
     private var isCallTypeAudio = false
     private var callDuration = 0
     private var timer: Timer? = null
@@ -112,12 +113,12 @@ class CallFragment : CallMangerListenerFragment() {
 
         arguments?.get(GroupModel.TAG)?.let {
             groupModel = it as GroupModel?
-            isIncomingCall = arguments?.get("isIncoming") as Boolean
+            isIncomingCall = arguments?.get(DialCallFragment.IS_IN_COMING_CALL) as Boolean
 //            getUserName(groupModel,isVideoCall)
         } ?: kotlin.run {
-            groupList = arguments?.get("grouplist") as ArrayList<GroupModel>
-            name = (arguments?.get("userName") as CharSequence?).toString()
-            acceptCallModel = arguments?.getParcelable(AcceptCallModel.TAG) as AcceptCallModel?
+            groupList = arguments?.getParcelableArrayList<GroupModel>(DialCallFragment.GROUP_LIST) as ArrayList<GroupModel>
+            name = (arguments?.get(DialCallFragment.USER_NAME) as CharSequence?).toString()
+            callParams = arguments?.getParcelable(AcceptCallModel.TAG) as CallParams?
             isIncomingCall = true
         }
 
@@ -138,7 +139,7 @@ class CallFragment : CallMangerListenerFragment() {
             } else {
                 binding.imgMute.setImageResource(R.drawable.ic_unmute_mic)
             }
-            (activity as DashBoardActivity).muteUnMuteCall()
+            (activity as DashBoardActivity).muteUnMuteCall(isVideoCall)
         }
 
         binding.ivSpeaker.setOnClickListener {
@@ -167,17 +168,16 @@ class CallFragment : CallMangerListenerFragment() {
             if (isVideoCall) {
                 binding.localViewCard.hide()
                 binding.localView.hide()
-                (activity as DashBoardActivity).pauseVideo()
+                (activity as DashBoardActivity).pauseVideo(isVideoCall)
                 binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             } else {
                 binding.localViewCard.show()
                 binding.localView.show()
                 refreshLocalCameraView(null)
-                (activity as DashBoardActivity).resumeVideo()
+                (activity as DashBoardActivity).resumeVideo(isVideoCall)
                 binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
             }
             isVideoCall = !isVideoCall
-            (activity as DashBoardActivity).switchCallType(isVideoCall)
         }
 
         addTouchEventListener()
@@ -191,6 +191,7 @@ class CallFragment : CallMangerListenerFragment() {
         binding.containerVideoFrame.container2.root.setTag("2")
         binding.containerVideoFrame.container3.root.setTag("3")
         binding.containerVideoFrame.container4.root.setTag("4")
+
 
     }
     /**
@@ -271,6 +272,7 @@ class CallFragment : CallMangerListenerFragment() {
             binding.containerVideoFrame.container3.groupAudioCall.show()
             binding.containerVideoFrame.container4.groupAudioCall.show()
 
+            binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_off)
             binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             binding.localViewCard.hide()
             binding.ivCamSwitch.hide()
@@ -288,6 +290,7 @@ class CallFragment : CallMangerListenerFragment() {
             binding.containerVideoFrame.container3.remoteView.show()
             binding.containerVideoFrame.container4.remoteView.show()
 
+            binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_on)
             binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
 
         }
@@ -299,6 +302,7 @@ class CallFragment : CallMangerListenerFragment() {
 
         listUser?.let {
             if (it.size == 1) {
+                binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.hide()
                 binding.containerVideoFrame.container2.root.hide()
                 binding.containerVideoFrame.container3.root.hide()
@@ -314,6 +318,7 @@ class CallFragment : CallMangerListenerFragment() {
 
             } else if (it.size == 2) {
 
+                binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.show()
                 binding.containerVideoFrame.container2.root.show()
                 binding.containerVideoFrame.container3.root.hide()
@@ -336,6 +341,7 @@ class CallFragment : CallMangerListenerFragment() {
 
             } else if (it.size == 3) {
 
+                binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.show()
                 binding.containerVideoFrame.container2.root.show()
                 binding.containerVideoFrame.container3.root.show()
@@ -358,6 +364,7 @@ class CallFragment : CallMangerListenerFragment() {
 
             } else if (it.size == 4) {
 
+                binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.show()
                 binding.containerVideoFrame.container2.root.show()
                 binding.containerVideoFrame.container3.root.show()
@@ -423,15 +430,25 @@ class CallFragment : CallMangerListenerFragment() {
         fun newInstance() = CallFragment()
     }
 
-    override fun onIncomingCall(model: AcceptCallModel) {}
+    override fun onIncomingCall(model: CallParams) {}
 
     override fun onStartCalling() {}
 
     override fun outGoingCall(toPeer: GroupModel) {}
 
+    var isFullViewIntialized = false
     override fun onRemoteStreamReceived(stream: VideoTrack, refId: String, sessionID: String) {
         val mainHandler = activity?.mainLooper?.let { Handler(it) }
         val myRunnable = Runnable {
+
+
+
+            if (!isFullViewIntialized){
+                isFullViewIntialized = true
+                // first view
+            } else {
+
+            }
 
             try {
                 var container = userMap.get(refId)
@@ -457,11 +474,12 @@ class CallFragment : CallMangerListenerFragment() {
 
                     stream.addSink(videoView)
 
-                    videoView.postDelayed({
+                    if (isSpeakerOff) {
                         isSpeakerOff = false
-                        callClient.toggleSpeakerOnOff()
-                    }, 1000)
-
+                        videoView.postDelayed({
+                            callClient.toggleSpeakerOnOff()
+                        }, 1000)
+                    }
                 }
             } catch (e: Exception) {
                 Log.i("SocketLog", "onStreamAvailable: exception" + e.printStackTrace())
@@ -481,14 +499,16 @@ class CallFragment : CallMangerListenerFragment() {
                 if (view == null) {
 
                     val container = getContainerParticipantView()
+                    container.root.show()
                     userMap.put(refId, container)
                     listUser.add(Participants(null, null, null, null, refId, null))
                     updateCallUIViews(listUser)
+                    setUserNameUI(container, refId)
                     container.groupAudioCall.show()
                     container.remoteView.hide()
                 }
             } catch (e: Exception) {
-                Log.i("SocketLog", "onStreamAvailable: exception" + e.printStackTrace())
+                Log.e("SocketLog", "onStreamAvailable: exception" + e.printStackTrace())
             }
 
         }
@@ -497,23 +517,21 @@ class CallFragment : CallMangerListenerFragment() {
 
     private fun setUserNameUI(container: LayoutCallingUserBinding, refId: String) {
 
-        groupModel?.participants?.let {
+        var fullName = groupModel?.participants?.find { it.refId == refId }?.fullname
 
-            it.forEach {
-                if (it.refId == refId) {
-                    container.tvUserName.setText(it.fullname)
-                }
-            }
-
-        } ?: run {
+        if (fullName == null) {
             groupList.forEach { group ->
-                group.participants.forEach { participant ->
-                    if (participant.refId == refId) {
-                        container.tvUserName.setText(participant.fullname)
+                group.participants.forEach {
+                    if (it.refId == refId) {
+                        fullName = it.fullname
                     }
                 }
             }
         }
+
+        if (!TextUtils.isEmpty(fullName))
+            container.tvUserName.setText(fullName)
+
     }
 
 
@@ -552,6 +570,7 @@ class CallFragment : CallMangerListenerFragment() {
                 refreshLocalCameraView(videoView)
             } catch (e: Exception) {
                 e.printStackTrace()
+                Log.e("SocketLog", "onCameraStreamReceived: exception" + e.printStackTrace())
             }
         }
         mainHandler?.post(myRunnable)
@@ -583,7 +602,8 @@ class CallFragment : CallMangerListenerFragment() {
 
         if (binding.localViewCard.isVisible) {
 
-            view?.setZOrderMediaOverlay(false)
+            setZIndexDown()
+//            view?.setZOrderMediaOverlay(false)
 
             binding.localView.setEnableHardwareScaler(true)
             binding.localView.setZOrderMediaOverlay(true)
@@ -601,6 +621,14 @@ class CallFragment : CallMangerListenerFragment() {
             binding.localView.show()
 
         }
+    }
+
+    fun setZIndexDown() {
+        binding.containerVideoFrame.container1.remoteView.setZOrderMediaOverlay(false)
+        binding.containerVideoFrame.container2.remoteView.setZOrderMediaOverlay(false)
+        binding.containerVideoFrame.container3.remoteView.setZOrderMediaOverlay(false)
+        binding.containerVideoFrame.container4.remoteView.setZOrderMediaOverlay(false)
+        binding.localView.setZOrderMediaOverlay(true)
     }
 
     override fun onCallMissed() {
@@ -625,15 +653,7 @@ class CallFragment : CallMangerListenerFragment() {
 
         refId?.let {
 
-//            (binding.recyclerView.adapter as GridUserAdapter).removeUser(refId)
-
-
             val view = userMap.get(refId)
-            Log.e(
-                "callfrag",
-                "onParticipantLeftCall view tag = " + view?.root?.tag + " --- refID = " + refId + " === user : " + userMap.size
-            )
-
             view?.let {
 
                 val participant = listUser.find { it.refId == refId }
@@ -649,14 +669,11 @@ class CallFragment : CallMangerListenerFragment() {
                 userMap.remove(refId)
 
                 refreshLocalCameraView(null)
-
             }
-
         }
     }
 
     override fun onDestroyView() {
-//        stopTimer()
         (activity as DashBoardActivity).endCall()
         super.onDestroyView()
     }

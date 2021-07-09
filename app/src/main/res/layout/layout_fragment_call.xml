@@ -164,10 +164,7 @@
             android:elevation="10dp"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="20dp"
-            android:layout_marginBottom="130dp"
-            app:cardCornerRadius="10dp">
-
-<!--            app:layout_constraintBottom_toTopOf="@+id/bottomBar">-->
+            android:layout_marginBottom="130dp">
 
             <org.webrtc.SurfaceViewRenderer
                 android:id="@+id/localView"

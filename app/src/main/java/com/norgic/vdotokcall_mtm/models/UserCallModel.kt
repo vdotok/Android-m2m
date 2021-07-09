@@ -1,7 +1,6 @@
 package com.norgic.vdotokcall_mtm.models
 
 import com.norgic.vdotokcall_mtm.ui.dashboard.adapter.TYPE_QUARTER
-import org.webrtc.VideoSink
 import org.webrtc.VideoTrack
 
 
