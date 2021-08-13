@@ -1,4 +1,4 @@
-vdotok-Android-Mnay2ManyCall
+vdotok-Android-Many2ManyCall
 ===================
 IDE Installation & Build Guide
 ==============================
