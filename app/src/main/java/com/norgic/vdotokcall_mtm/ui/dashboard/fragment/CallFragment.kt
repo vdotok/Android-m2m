@@ -168,13 +168,13 @@ class CallFragment : CallMangerListenerFragment() {
             if (isVideoCall) {
                 binding.localViewCard.hide()
                 binding.localView.hide()
-                (activity as DashBoardActivity).pauseVideo(isVideoCall)
+                (activity as DashBoardActivity).pauseVideo()
                 binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             } else {
                 binding.localViewCard.show()
                 binding.localView.show()
                 refreshLocalCameraView(null)
-                (activity as DashBoardActivity).resumeVideo(isVideoCall)
+                (activity as DashBoardActivity).resumeVideo()
                 binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
             }
             isVideoCall = !isVideoCall
@@ -440,15 +440,6 @@ class CallFragment : CallMangerListenerFragment() {
     override fun onRemoteStreamReceived(stream: VideoTrack, refId: String, sessionID: String) {
         val mainHandler = activity?.mainLooper?.let { Handler(it) }
         val myRunnable = Runnable {
-
-
-
-            if (!isFullViewIntialized){
-                isFullViewIntialized = true
-                // first view
-            } else {
-
-            }
 
             try {
                 var container = userMap.get(refId)

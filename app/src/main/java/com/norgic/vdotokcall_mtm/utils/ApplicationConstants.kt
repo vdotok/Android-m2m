@@ -8,19 +8,14 @@ package com.norgic.vdotokcall_mtm.utils
 object ApplicationConstants {
 
 //    API CONSTANTS
-    const val API_BASE_URL = "https://tenant-api.vdotok.com/"
-    const val SDK_AUTH_BASE_URL = "https://vtkapi.vdotok.com/"
+    const val API_BASE_URL = "https://tenant-api.vdotok.dev/"
     const val API_VERSION = "v0/"
 
 //    SDK AUTH PARAMS
-    const val SDK_AUTH_TOKEN = "3d9686b635b15b5bc2d19800407609fa"
-    const val SDK_PROJECT_ID = "Add your Onw Project Key Here"
+    const val SDK_PROJECT_ID = "Enter your provided project ID"
 
 //    PREFS CONSTANTS
-    const val isLogin = "isLogin"
     const val LOGIN_INFO = "savedLoginInfo"
-    const val GROUP_MODEL_KEY = "group_model_key"
-    const val SDK_AUTH_RESPONSE = "SDK_AUTH_RESPONSE"
 
 //    API ERROR LOG TAGS
     const val API_ERROR = "API_ERROR"

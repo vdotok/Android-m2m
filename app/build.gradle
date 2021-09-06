@@ -50,7 +50,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:4.2.2'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    //    fragment navigation
+    // fragment navigation
     def nav_version = "2.3.4"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"

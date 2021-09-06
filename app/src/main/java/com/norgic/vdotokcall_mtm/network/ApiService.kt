@@ -12,9 +12,6 @@ import retrofit2.http.POST
  */
 interface ApiService {
 
-    @POST("API/v0/AuthenticateSDK")
-    suspend fun authSDK(@Body model: AuthenticationRequest): Response<AuthenticationResponse>
-
     @POST("API/v0/Login")
     suspend fun loginUser(@Body model: LoginUserModel): Response<LoginResponse>
 

@@ -99,6 +99,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
         }
 
         binding.tvLogout.setOnClickListener {
+            (activity as DashBoardActivity).logout()
             prefs.deleteKeyValuePair(ApplicationConstants.LOGIN_INFO)
             startActivity(AccountsActivity.createAccountsActivity(this.requireContext()))
         }

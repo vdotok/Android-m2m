@@ -17,6 +17,7 @@ import com.norgic.vdotokcall_mtm.extensions.*
 import com.norgic.vdotokcall_mtm.models.CheckUserModel
 import com.norgic.vdotokcall_mtm.models.LoginResponse
 import com.norgic.vdotokcall_mtm.models.SignUpModel
+import com.norgic.vdotokcall_mtm.models.UtilsModel
 import com.norgic.vdotokcall_mtm.network.HttpResponseCodes
 import com.norgic.vdotokcall_mtm.network.Result
 import com.norgic.vdotokcall_mtm.network.RetrofitBuilder
@@ -194,7 +195,7 @@ class SignUpFragment: Fragment() {
             HttpResponseCodes.SUCCESS.value -> {
                 binding.root.showSnackBar(resources.getString(R.string.account_created_success))
                 Handler(Looper.getMainLooper()).postDelayed({
-                    prefs.loginInfo = response
+                    prefs.loginInfo = UtilsModel.updateServerUrls(response)
                     startActivity(activity?.applicationContext?.let { DashBoardActivity.createDashboardActivity(it) })
                 }, 1500)
             }

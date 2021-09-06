@@ -16,6 +16,7 @@ import com.norgic.vdotokcall_mtm.extensions.showSnackBar
 import com.norgic.vdotokcall_mtm.extensions.toggleVisibility
 import com.norgic.vdotokcall_mtm.models.LoginResponse
 import com.norgic.vdotokcall_mtm.models.LoginUserModel
+import com.norgic.vdotokcall_mtm.models.UtilsModel
 import com.norgic.vdotokcall_mtm.network.HttpResponseCodes
 import com.norgic.vdotokcall_mtm.network.Result
 import com.norgic.vdotokcall_mtm.network.RetrofitBuilder
@@ -120,7 +121,7 @@ class LoginFragment: Fragment() {
     private fun handleLoginResponse(response: LoginResponse) {
         when(response.status) {
             HttpResponseCodes.SUCCESS.value -> {
-                prefs.loginInfo = response
+                prefs.loginInfo = UtilsModel.updateServerUrls(response)
                 startActivity(activity?.applicationContext?.let { DashBoardActivity.createDashboardActivity(it) })
             }
             else -> {

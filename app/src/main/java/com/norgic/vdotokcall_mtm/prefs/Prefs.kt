@@ -4,10 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
-import com.norgic.vdotokcall_mtm.models.AuthenticationResponse
 import com.norgic.vdotokcall_mtm.models.LoginResponse
 import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.LOGIN_INFO
-import com.norgic.vdotokcall_mtm.utils.ApplicationConstants.SDK_AUTH_RESPONSE
 
 /**
  * Created By: Norgic
@@ -33,20 +31,6 @@ class Prefs(context: Context?) {
             mEditor.apply()
         }
 
-
-    var sdkAuthResponse: AuthenticationResponse?
-        get(){
-            val gson = Gson()
-            val json = mPrefs.getString(SDK_AUTH_RESPONSE, "")
-            return gson.fromJson(json, AuthenticationResponse::class.java)
-        }
-        set(authResponse) {
-            val mEditor: SharedPreferences.Editor = mPrefs.edit()
-            val gson = Gson()
-            val json = gson.toJson(authResponse)
-            mEditor.putString(SDK_AUTH_RESPONSE, json)
-            mEditor.apply()
-        }
 
     /**
      * Function to save a list of any type in prefs
