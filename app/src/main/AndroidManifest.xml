@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.norgic.vdotokcall_mtm">
+    package="com.vdotok.many2many">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -11,6 +11,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:allowBackup="false"
@@ -22,15 +29,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
-            android:name=".ui.dashboard.DashBoardActivity"
+            android:name="com.vdotok.many2many.ui.dashboard.DashBoardActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.account.AccountsActivity"
+            android:name="com.vdotok.many2many.ui.account.AccountsActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".ui.SplashActivity"
+            android:name="com.vdotok.many2many.ui.SplashActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait">
             <intent-filter>
