@@ -1,7 +1,6 @@
 package com.vdotok.many2many.ui.dashboard.fragment
 
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
 import com.google.android.material.snackbar.Snackbar
 import com.vdotok.many2many.R
@@ -21,24 +21,20 @@ import com.vdotok.many2many.adapter.OnInboxItemClickCallbackListener
 import com.vdotok.many2many.databinding.FragmentUserListBinding
 import com.vdotok.many2many.dialogs.CreateGroupDialog
 import com.vdotok.many2many.extensions.*
-import com.vdotok.many2many.models.AllGroupsResponse
-import com.vdotok.many2many.models.CreateGroupModel
-import com.vdotok.many2many.models.GetAllUsersResponseModel
-import com.vdotok.many2many.models.UserModel
-import com.vdotok.many2many.network.ApiService
+import com.vdotok.many2many.feature.account.viewmodel.GroupViewModel
+import com.vdotok.many2many.feature.dashBoard.viewmodel.UserListViewModel
 import com.vdotok.many2many.network.HttpResponseCodes
-import com.vdotok.many2many.network.Result
-import com.vdotok.many2many.network.RetrofitBuilder
 import com.vdotok.many2many.prefs.Prefs
-import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.many2many.utils.ApplicationConstants.API_ERROR
 import com.vdotok.many2many.utils.ViewUtils.setStatusBarGradient
-import com.vdotok.many2many.utils.safeApiCall
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.vdotok.many2many.utils.isInternetAvailable
+import com.vdotok.network.models.AllGroupsResponse
+import com.vdotok.network.models.CreateGroupModel
+import com.vdotok.network.models.GetAllUsersResponseModel
+import com.vdotok.network.models.UserModel
+import com.vdotok.network.network.Result
 import retrofit2.HttpException
+
 /**
  * Created By: VdoTok
  * Date & Time: On 6/17/21 At 1:29 PM in 2021
@@ -51,6 +47,8 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
     private lateinit var prefs: Prefs
     lateinit var adapter: AllUserListAdapter
     var edtSearch = ObservableField<String>()
+    private val listViewModel : UserListViewModel by viewModels()
+    private val viewModelGroup : GroupViewModel by viewModels()
 
 
     override fun onCreateView(
@@ -162,43 +160,70 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
      * Function to call api for creating a group on server
      * */
     private fun createGroupApiCall(model: CreateGroupModel) {
-        activity?.let {
-            binding.progressBar.toggleVisibility()
-            val apiService: ApiService =
-                RetrofitBuilder.makeRetrofitService(it)
-            prefs.loginInfo?.authToken.let {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val response =
-                        safeApiCall { apiService.createGroup(auth_token = "Bearer $it", model) }
-                    withContext(Dispatchers.Main) {
-                        try {
-                            when (response) {
-                                is Result.Success -> {
-                                    Snackbar.make(
-                                        binding.root,
-                                        R.string.group_created,
-                                        Snackbar.LENGTH_LONG
-                                    ).show()
-                                    handleCreateGroupSuccess(response.data)
-                                }
-                                is Result.Error -> {
-                                    if (response.error.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
-                                        binding.root.showSnackBar(getString(R.string.no_network_available))
-                                    } else {
-                                        binding.root.showSnackBar(response.error.message)
-                                    }
-                                }
-                            }
-                        } catch (e: HttpException) {
-                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
-                        } catch (e: Throwable) {
-                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
-                        }
+
+        viewModelGroup.createGroup(this.prefs, model).observe(viewLifecycleOwner, {
+            try {
+                when (it) {
+                    is Result.Loading -> {
                         binding.progressBar.toggleVisibility()
                     }
+                    is Result.Success -> {
+                        binding.progressBar.toggleVisibility()
+                        Snackbar.make(binding.root, R.string.group_created, Snackbar.LENGTH_LONG).show()
+                        handleCreateGroupSuccess(it.data)
+                    }
+                    is Result.Failure -> {
+                        binding.progressBar.toggleVisibility()
+                        if (isInternetAvailable(activity as Context).not())
+                            binding.root.showSnackBar(getString(R.string.no_network_available))
+                        else
+                            binding.root.showSnackBar(it.exception.message)
+                    }
                 }
+
+            } catch (e: HttpException) {
+                Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
+            } catch (e: Throwable) {
+                Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        }
+        })
+
+//        activity?.let {
+//            binding.progressBar.toggleVisibility()
+//            val apiService: ApiService =
+//                RetrofitBuilder.makeRetrofitService(it)
+//            prefs.loginInfo?.authToken.let {
+//                CoroutineScope(Dispatchers.IO).launch {
+//                    val response = safeApiCall { apiService.createGroup(auth_token = "Bearer $it", model) }
+//                    withContext(Dispatchers.Main) {
+//                        try {
+//                            when (response) {
+//                                is Result.Success -> {
+//                                    Snackbar.make(
+//                                        binding.root,
+//                                        R.string.group_created,
+//                                        Snackbar.LENGTH_LONG
+//                                    ).show()
+//                                    handleCreateGroupSuccess(response.data)
+//                                }
+//                                is Result.Error -> {
+//                                    if (response.error.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
+//                                        binding.root.showSnackBar(getString(R.string.no_network_available))
+//                                    } else {
+//                                        binding.root.showSnackBar(response.error.message)
+//                                    }
+//                                }
+//                            }
+//                        } catch (e: HttpException) {
+//                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
+//                        } catch (e: Throwable) {
+//                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
+//                        }
+//                        binding.progressBar.toggleVisibility()
+//                    }
+//                }
+//            }
+//        }
     }
 
 
@@ -251,37 +276,40 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
      * Function to call api for getting all user on server
      * */
     private fun getAllUsers() {
-        activity?.let {
-            binding.progressBar.toggleVisibility()
-            val apiService: ApiService = RetrofitBuilder.makeRetrofitService(it)
-            prefs.loginInfo?.authToken.let {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val response = safeApiCall { apiService.getAllUsers(auth_token = "Bearer $it") }
-                    withContext(Dispatchers.Main) {
-                        try {
-                            when (response) {
-                                is Result.Success -> {
-                                    handleAllUsersResponse(response.data)
-                                }
-                                is Result.Error -> {
-                                    if (response.error.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
-                                        binding.root.showSnackBar(getString(R.string.no_network_available))
-                                    } else {
-                                        binding.root.showSnackBar(response.error.message)
-                                    }
-                                }
-                            }
-                        } catch (e: HttpException) {
-                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
-                        } catch (e: Throwable) {
-                            Log.e(API_ERROR, "signUpUser: ${e.printStackTrace()}")
-                        }
-                        binding.progressBar.toggleVisibility()
+
+        listViewModel.getAllUsers(this.prefs).observe(viewLifecycleOwner, {
+            try {
+                when (it) {
+                    is com.vdotok.network.network.Result.Loading -> {
+
                         binding.swipeRefreshLay.isRefreshing = false
+                        binding.progressBar.toggleVisibility()
+
+                    }
+                    is com.vdotok.network.network.Result.Success -> {
+                        binding.progressBar.toggleVisibility()
+                        handleAllUsersResponse(it.data)
+
+                    }
+                    is com.vdotok.network.network.Result.Failure -> {
+                        binding.swipeRefreshLay.isRefreshing = false
+                        binding.progressBar.toggleVisibility()
+                        Log.e(API_ERROR, it.exception.message ?: "")
+                        if (isInternetAvailable(activity as Context).not())
+                            binding.root.showSnackBar(getString(R.string.no_network_available))
+                        else
+                            binding.root.showSnackBar(it.exception.message)
                     }
                 }
+
+            } catch (e: HttpException) {
+                Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
+            } catch (e: Throwable) {
+                Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        }
+        })
+
+
     }
 
     private fun handleAllUsersResponse(response: GetAllUsersResponseModel) {
@@ -335,9 +363,4 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
     }
 
 
-    companion object{
-
-        fun createAllUsersActivity(context: Context) = Intent(context, UserListFragment::class.java)
-
-    }
 }

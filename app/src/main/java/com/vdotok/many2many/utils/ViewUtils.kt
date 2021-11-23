@@ -20,8 +20,7 @@ object ViewUtils {
             val background = activity.resources.getDrawable(toSetDrawable, null)
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             window.statusBarColor = activity.resources.getColor(android.R.color.transparent, null)
-            window.navigationBarColor =
-                activity.resources.getColor(android.R.color.transparent, null)
+            window.navigationBarColor = activity.resources.getColor(android.R.color.transparent, null)
             window.setBackgroundDrawable(background)
         }
     }

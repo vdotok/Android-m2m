@@ -12,7 +12,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.vdotok.many2many.R
 import com.vdotok.many2many.databinding.GroupChatRowBinding
-import com.vdotok.many2many.models.GroupModel
+import com.vdotok.network.models.GroupModel
 import com.vdotok.many2many.utils.performSingleClick
 
 
@@ -22,8 +22,8 @@ import com.vdotok.many2many.utils.performSingleClick
  *
  * Adapter Class for inflating list of all groups or chats a user is included into\
  */
-class GroupsAdapter(private val username:String , private val dataSet: List<GroupModel>, private val context: Context,
-        private val callbacks: InterfaceOnGroupMenuItemClick) :
+class GroupsAdapter(private val username:String, private val dataSet: List<GroupModel>, private val context: Context,
+                    private val callbacks: InterfaceOnGroupMenuItemClick) :
     RecyclerView.Adapter<GroupsAdapter.AllGroupsListViewHolder>() {
 
     var dataList: ArrayList<GroupModel> = ArrayList()
@@ -45,7 +45,7 @@ class GroupsAdapter(private val username:String , private val dataSet: List<Grou
         //to get group name other user name if single group other wise group title
        listItem.let {
             if(listItem.autoCreated == 1){
-                it.participants.forEach {name->
+                it.participants?.forEach {name->
                     if (name.fullname?.equals(username) == false) {
                         holder.binding?.groupTitle?.text = name.fullname
 

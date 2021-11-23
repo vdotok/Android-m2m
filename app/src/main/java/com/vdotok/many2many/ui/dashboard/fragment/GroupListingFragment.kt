@@ -14,36 +14,39 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.databinding.ObservableField
+import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
-import com.vdotok.streaming.CallClient
-import com.vdotok.streaming.enums.*
-import com.vdotok.streaming.models.CallParams
 import com.vdotok.many2many.R
 import com.vdotok.many2many.adapter.GroupsAdapter
+import com.vdotok.many2many.base.BaseActivity
+import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.FragmentGroupListingBinding
 import com.vdotok.many2many.dialogs.UpdateGroupNameDialog
 import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.extensions.toggleVisibility
-import com.vdotok.many2many.fragments.CallMangerListenerFragment
-import com.vdotok.many2many.models.AcceptCallModel
-import com.vdotok.many2many.models.AllGroupsResponse
-import com.vdotok.many2many.models.DeleteGroupModel
-import com.vdotok.many2many.models.GroupModel
-import com.vdotok.many2many.network.ApiService
+import com.vdotok.many2many.feature.account.viewmodel.GroupViewModel
 import com.vdotok.many2many.network.HttpResponseCodes
-import com.vdotok.many2many.network.Result
-import com.vdotok.many2many.network.RetrofitBuilder
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.account.AccountsActivity
+import com.vdotok.many2many.ui.calling.CallActivity
+import com.vdotok.many2many.ui.calling.fragment.DialCallFragment
 import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.ApplicationConstants
-import com.vdotok.many2many.utils.safeApiCall
+import com.vdotok.many2many.utils.isInternetAvailable
 import com.vdotok.many2many.utils.showDeleteGroupAlert
+import com.vdotok.network.models.AllGroupsResponse
+import com.vdotok.network.models.DeleteGroupModel
+import com.vdotok.network.models.GroupModel
+import com.vdotok.streaming.CallClient
+import com.vdotok.streaming.enums.*
+import com.vdotok.streaming.models.CallParams
 import kotlinx.coroutines.*
+import okhttp3.MediaType
 import org.webrtc.VideoTrack
 import retrofit2.HttpException
+import java.util.*
 
 
 /**
@@ -52,7 +55,7 @@ import retrofit2.HttpException
  *
  * This class displays the list of groups that a user is connected to
  */
-class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.InterfaceOnGroupMenuItemClick {
+class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuItemClick {
 
     private lateinit var binding: FragmentGroupListingBinding
     private lateinit var prefs: Prefs
@@ -63,6 +66,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
     var isVideoCall = false
     var user : String? = null
     var viewFrag: View? = null
+    private val viewModelGroup : GroupViewModel by viewModels()
 
 
     override fun onCreateView(
@@ -70,7 +74,6 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
 
         if (viewFrag == null) {
 
@@ -119,7 +122,6 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
         initUserListAdapter()
         getAllGroups()
         addPullToRefresh()
-//        checkNetworkStatPermission()
     }
     /**
      * Function for refreshing the updated group
@@ -145,35 +147,31 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
      * Function to call api for getting all group on server
      * */
     private fun getAllGroups() {
-        binding.progressBar.toggleVisibility()
-        val apiService: ApiService = RetrofitBuilder.makeRetrofitService(this.requireContext())
-        prefs.loginInfo?.authToken.let {
-            CoroutineScope(Dispatchers.IO).launch {
-                val response = safeApiCall { apiService.getAllGroups(auth_token = "Bearer $it") }
-                withContext(Dispatchers.Main) {
-                    try {
-                        when (response) {
-                            is Result.Success -> {
-                                handleAllGroupsResponse(response.data)
-                            }
-                            is Result.Error -> {
-                                if (response.error.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
-                                    binding.root.showSnackBar(getString(R.string.no_network_available))
-                                } else {
-                                    binding.root.showSnackBar(response.error.message)
-                                }
-                            }
-                        }
-                    } catch (e: HttpException) {
-                        Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
-                    } catch (e: Throwable) {
-                        Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
+        viewModelGroup.getAllGroups(this.prefs).observe(viewLifecycleOwner, {
+            try {
+                when (it) {
+                    is com.vdotok.network.network.Result.Success -> {
+                        handleAllGroupsResponse(it.data)
+                        binding.swipeRefreshLay.isRefreshing = false
                     }
-                    binding.progressBar.toggleVisibility()
-                    binding.swipeRefreshLay.isRefreshing = false
+                    is com.vdotok.network.network.Result.Failure -> {
+                        if (isInternetAvailable(activity as Context).not())
+                            binding.root.showSnackBar(getString(R.string.no_network_available))
+                        else
+                            binding.root.showSnackBar(it.exception.message)
+                        binding.swipeRefreshLay.isRefreshing = false
+                    }
                 }
+                binding.progressBar.toggleVisibility()
+
+
+            } catch (e: HttpException) {
+                Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
+            } catch (e: Throwable) {
+                Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        }
+        })
+
     }
 
     private fun handleAllGroupsResponse(response: AllGroupsResponse) {
@@ -214,8 +212,8 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
     override fun onEditClick(groupModel: GroupModel) {
         activity?.supportFragmentManager.let { UpdateGroupNameDialog(groupModel, this::getAllGroups).show(
             it!!,
-            UpdateGroupNameDialog.UPDATE_GROUP_TAG
-        ) }
+            UpdateGroupNameDialog.UPDATE_GROUP_TAG)
+        }
 
     }
 
@@ -249,56 +247,39 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
      * Function to call api for deleting a group from server
      * */
     private fun deleteGroup(model: DeleteGroupModel) {
-        activity?.let {
-            binding.progressBar.toggleVisibility()
-            val apiService: ApiService = RetrofitBuilder.makeRetrofitService(it)
-            prefs.loginInfo?.authToken.let {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val response = safeApiCall { apiService.deleteGroup(
-                        auth_token = "Bearer $it",
-                        model = model
-                    )}
-                    withContext(Dispatchers.Main) {
-                        try {
-                            when (response) {
-                                is Result.Success -> {
-                                    if (response.data.status == ApplicationConstants.SUCCESS_CODE) {
-                                        binding.root.showSnackBar(getString(R.string.group_deleted))
-                                        getAllGroups()
-                                    } else {
-                                        binding.root.showSnackBar(response.data.message)
-                                    }
-                                }
-                                is Result.Error -> {
-                                    if (response.error.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
-                                        binding.root.showSnackBar(getString(R.string.no_network_available))
-                                    } else {
-                                        binding.root.showSnackBar(response.error.message)
-                                    }
-                                }
-                            }
-                        } catch (e: HttpException) {
-                            Log.e(
-                                ApplicationConstants.API_ERROR,
-                                "signUpUser: ${e.printStackTrace()}"
-                            )
-                        } catch (e: Throwable) {
-                            Log.e(
-                                ApplicationConstants.API_ERROR,
-                                "signUpUser: ${e.printStackTrace()}"
-                            )
+        viewModelGroup.deleteGroup(this.prefs, model).observe(viewLifecycleOwner, {
+            try {
+                when (it) {
+                    is com.vdotok.network.network.Result.Success -> {
+                        if (it.data.status == ApplicationConstants.SUCCESS_CODE) {
+                            binding.root.showSnackBar(getString(R.string.group_deleted))
+                            getAllGroups()
+                        } else {
+                            binding.root.showSnackBar(it.data.message)
                         }
-                        binding.progressBar.toggleVisibility()
+                        binding.swipeRefreshLay.isRefreshing = false
+                    }
+                    is com.vdotok.network.network.Result.Failure -> {
+                        if (isInternetAvailable(activity as Context).not())
+                            binding.root.showSnackBar(getString(R.string.no_network_available))
+                        else
+                            binding.root.showSnackBar(it.exception.message)
                         binding.swipeRefreshLay.isRefreshing = false
                     }
                 }
+                binding.progressBar.toggleVisibility()
+
+            } catch (e: HttpException) {
+                Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
+            } catch (e: Throwable) {
+                Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        }
+        })
     }
 
     private fun dialCall(groupModel: GroupModel, isVideo: Boolean) {
         val refIdList = ArrayList<String>()
-        groupModel.participants.forEach { participant ->
+        groupModel.participants?.forEach { participant ->
             if (participant.refId != prefs.loginInfo?.refId)
                 participant.refId?.let { refIdList.add(it) }
         }
@@ -313,7 +294,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
                     CallParams(
                         refId = it.refId!!,
                         toRefIds = refIdList,
-                        mediaType = if (isVideo) MediaType.VIDEO else MediaType.AUDIO,
+                        mediaType = if (isVideo) com.vdotok.streaming.enums.MediaType.VIDEO else com.vdotok.streaming.enums.MediaType.AUDIO,
                         callType = CallType.MANY_TO_MANY,
                         sessionType = SessionType.CALL,
                         isAppAudio = false
@@ -372,13 +353,18 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
             val bundle = Bundle()
             bundle.putParcelableArrayList(DialCallFragment.GROUP_LIST, groupList)
             bundle.putString(DialCallFragment.USER_NAME, getUsername(model.refId))
-            bundle.putParcelable(AcceptCallModel.TAG, model)
+//            bundle.putParcelable(AcceptCallModel.TAG, model)
             bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, true)
-            bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, model.mediaType == MediaType.VIDEO)
-            Navigation.findNavController(binding.root).navigate(
-                R.id.action_open_dial_fragment,
-                bundle
-            )
+            bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, model.mediaType == com.vdotok.streaming.enums.MediaType.VIDEO)
+//            Navigation.findNavController(binding.root).navigate(
+//                R.id.action_open_dial_fragment,
+//                bundle
+//            )
+
+            startActivity(CallActivity.createIntent(requireContext(),
+                null, false, false, null, model, (requireActivity() as BaseActivity).sessionId, groupList))
+
+
         }
     }
     /**
@@ -388,7 +374,7 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
     private fun getUsername(refId: String) : String? {
        groupList.let {
                 it.forEach { name ->
-                    name.participants.forEach { username->
+                    name.participants?.forEach { username->
                         if (username.refId?.equals(refId) == true) {
                             user = username.fullname
                             return user
@@ -406,11 +392,9 @@ class GroupListingFragment : CallMangerListenerFragment(), GroupsAdapter.Interfa
      * @param isVideo isVideo object is to check if its an audio or video call
      * */
     private fun openCallFragment(toPeer: GroupModel, isVideo: Boolean) {
-        val bundle = Bundle()
-        bundle.putParcelable(GroupModel.TAG, toPeer)
-        bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, isVideo)
-        bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, false)
-        Navigation.findNavController(binding.root).navigate(R.id.action_open_dial_fragment, bundle)
+        startActivity(CallActivity.createIntent(requireContext(),
+            toPeer, isVideo, false, null, null,
+            (requireActivity() as BaseActivity).sessionId))
     }
 
     /**

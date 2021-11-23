@@ -49,8 +49,7 @@
             android:layout_height="wrap_content"
             app:constraint_referenced_ids="tvUserName, imgUserPhoto" />
 
-
-        <org.webrtc.SurfaceViewRenderer
+        <com.vdotok.streaming.views.CallViewRenderer
             android:id="@+id/remoteView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -58,8 +57,11 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="parent" />
-
+            app:layout_constraintStart_toEndOf="parent"
+            app:avatar="@drawable/ic_user_icon"
+            app:showViewBorder="false"
+            app:borderStrokeWidth="1"
+            app:borderStrokeColor="@color/grayish" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

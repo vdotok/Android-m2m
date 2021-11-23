@@ -21,13 +21,12 @@ fun View.disableDoubleClick() {
     isClickable = false
     postDelayed({ isClickable = true }, TimeUnit.SECONDS.toMillis(2))
 }
-
 fun View.disableDoubleClickForOneSec() {
     isClickable = false
     postDelayed({ isClickable = true }, TimeUnit.SECONDS.toMillis(1))
 }
 
-fun View.clicks(method: () -> Unit) {
+fun View.clicks(method:  () -> Unit) {
     setOnClickListener {
         method.invoke()
     }

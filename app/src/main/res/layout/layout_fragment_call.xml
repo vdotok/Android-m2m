@@ -23,6 +23,7 @@
                 android:visibility="gone"
                 app:layout_constraintTop_toBottomOf="@id/tvUserName"
                 app:layout_constraintBottom_toBottomOf="parent" />
+
             <include
                 android:id="@+id/containerVideoFrame"
                 android:layout_width="match_parent"
@@ -31,6 +32,7 @@
                 app:layout_constraintTop_toBottomOf="@id/tvUserName"
                 app:layout_constraintBottom_toBottomOf="parent"
                 layout="@layout/layout_video_call_frame" />
+
             <View
                 android:layout_height="0dp"
                 android:layout_width="match_parent"
@@ -132,20 +134,20 @@
                 app:layout_constraintTop_toBottomOf="@id/ivCamSwitch"
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-        <androidx.cardview.widget.CardView
-            android:id="@+id/localViewCard"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:elevation="10dp"
+
+        <com.vdotok.streaming.views.CallViewRenderer
+            android:id="@+id/localView"
+            android:layout_width="130dp"
+            android:layout_height="170dp"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="20dp"
-            android:layout_marginBottom="130dp">
-            <org.webrtc.SurfaceViewRenderer
-                android:id="@+id/localView"
-                android:layout_width="130dp"
-                android:layout_height="170dp"
-                android:elevation="10dp"
-                android:focusable="true"/>
-        </androidx.cardview.widget.CardView>
+            android:layout_marginBottom="130dp"
+            android:focusable="true"
+            app:avatar="@drawable/ic_user_icon"
+            app:showViewBorder="true"
+            app:borderStrokeWidth="12"
+            app:borderStrokeColor="@color/grayish" />
+
+
     </FrameLayout>
 </layout>

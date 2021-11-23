@@ -29,15 +29,21 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
-            android:name="com.vdotok.many2many.ui.dashboard.DashBoardActivity"
+            android:name=".ui.dashboard.DashBoardActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait" />
         <activity
-            android:name="com.vdotok.many2many.ui.account.AccountsActivity"
+            android:name=".ui.account.AccountsActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait" />
+
         <activity
-            android:name="com.vdotok.many2many.ui.SplashActivity"
+            android:name=".ui.calling.CallActivity"
+            android:theme="@style/Theme.AccountScreen"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.SplashActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait">
             <intent-filter>

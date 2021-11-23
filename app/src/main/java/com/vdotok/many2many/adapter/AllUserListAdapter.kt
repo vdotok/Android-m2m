@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.vdotok.many2many.R
 import com.vdotok.many2many.databinding.UserRowBinding
 import com.vdotok.many2many.extensions.showSnackBar
-import com.vdotok.many2many.models.UserModel
 import com.vdotok.many2many.utils.ApplicationConstants.MAX_PARTICIPANTS
+import com.vdotok.network.models.UserModel
 
 
 class AllUserListAdapter(private val list: List<UserModel>, private val callbacks: OnInboxItemClickCallbackListener):

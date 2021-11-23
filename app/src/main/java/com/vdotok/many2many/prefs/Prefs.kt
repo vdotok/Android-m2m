@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import com.google.gson.Gson
-import com.vdotok.many2many.models.LoginResponse
 import com.vdotok.many2many.utils.ApplicationConstants.FILE_NAME
 import com.vdotok.many2many.utils.ApplicationConstants.LOGIN_INFO
+import com.vdotok.network.models.LoginResponse
 
 /**
  * Created By: VdoTok

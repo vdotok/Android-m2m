@@ -48,6 +48,7 @@
     <string name="feature_in_progress">Feature in progress!</string>
     <string name="description_call">call</string>
     <string name="edit_group">Edit Group Name</string>
+    <string name="updated_group">Group name is updated</string>
     <string name="delete">Delete</string>
     <string name="delete_group">Are you sure you want to delete the group chat?</string>
     <string name="group_deleted">Group Delete</string>
