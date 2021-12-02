@@ -89,8 +89,10 @@ class SignUpFragment: Fragment() {
                 is Result.Success ->  {
                     binding.progressBar.toggleVisibility()
                     handleCheckFullNameResponse(it.data)
+                    binding.btnSignUp.enable()
                 }
                 is Result.Failure -> {
+                    binding.btnSignUp.enable()
                     binding.progressBar.toggleVisibility()
                     if (isInternetAvailable(this@SignUpFragment.requireContext()).not())
                         binding.root.showSnackBar(getString(R.string.no_network_available))
