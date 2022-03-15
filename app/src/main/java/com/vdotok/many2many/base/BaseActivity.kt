@@ -11,10 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.utils.NetworkStatusLiveData
-import com.vdotok.network.models.LoginResponse
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.ApplicationConstants
+import com.vdotok.network.models.LoginResponse
 import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.commands.CallInfoResponse
 import com.vdotok.streaming.commands.RegisterResponse
@@ -92,10 +92,9 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
     override fun onPublicURL(publicURL: String) {}
 
 
-    override fun onSessionReady(mediaProjection: MediaProjection?,
-        isInternalAudioIncluded: Boolean) {}
+    override fun onSessionReady(mediaProjection: MediaProjection?) {}
 
-    override fun participantCount(participantCount: Int) {}
+    override fun participantCount(participantCount: Int, participantRefIdList: ArrayList<String>) {}
 
     override fun audioVideoState(state: SessionStateInfo) {
         runOnUiThread {
@@ -110,8 +109,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     mListener?.onStartCalling()
                 }
                 CallStatus.OUTGOING_CALL_ENDED,
-                CallStatus.NO_SESSION_EXISTS,
-                CallStatus.CALL_ENDED_SUCCESS -> {
+                CallStatus.NO_SESSION_EXISTS-> {
 
                     if (this@BaseActivity is CallActivity) {
                         turnSpeakerOff()
@@ -122,7 +120,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 }
                 CallStatus.CALL_REJECTED,
                 CallStatus.PARTICIPANT_LEFT_CALL  -> {
-                    mListener?.onCallRejected(callInfoResponse.callParams?.toRefIds?.get(0) ?: "")
+                    mListener?.onCallRejected(callInfoResponse.callParams?.refId ?: "")
                 }
                 CallStatus.CALL_MISSED -> {
                     sessionId?.let {
