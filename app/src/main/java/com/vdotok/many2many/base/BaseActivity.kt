@@ -120,7 +120,15 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 }
                 CallStatus.CALL_REJECTED,
                 CallStatus.PARTICIPANT_LEFT_CALL  -> {
-                    mListener?.onCallRejected(callInfoResponse.callParams?.refId ?: "")
+                    callInfoResponse.callParams?.refId?.let {
+                        if (it.isNotEmpty())
+                            mListener?.onCallRejected(it)
+                        else {
+                            callInfoResponse.callParams?.toRefIds?.get(0)?.let {
+                                mListener?.onCallRejected(it)
+                            }
+                        }
+                    }
                 }
                 CallStatus.CALL_MISSED -> {
                     sessionId?.let {
