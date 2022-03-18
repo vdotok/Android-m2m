@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
 import com.vdotok.many2many.R
@@ -123,16 +124,15 @@ class DialCallFragment : BaseFragment() {
             groupModel = it as GroupModel?
         } ?: kotlin.run {
             groupList = arguments?.getParcelableArrayList<GroupModel>(GROUP_LIST) as ArrayList<GroupModel>
-            username = arguments?.get(USER_NAME) as String?
             callParams = arguments?.get(ApplicationConstants.CALL_PARAMS) as CallParams?
+            username = callParams?.customDataPacket.toString()
         }
     }
     /**
      * Function to set data when outgoing call dial is implemented and setonClickListener
      * */
     private fun setDataForDialCall() {
-
-        getUsername()
+        userName.set(groupModel?.groupTitle)
         binding.imgCallAccept.hide()
         binding.imgmic.show()
         binding.imgCamera.show()
@@ -142,31 +142,6 @@ class DialCallFragment : BaseFragment() {
             rejectCall()
         }
 
-    }
-
-
-    /**
-     * Function to set user/users  name when outgoing call dial is implemented
-     * */
-    private fun getUsername() {
-        groupModel.let { it ->
-            if(groupModel?.autoCreated == 1){
-                it?.participants?.forEach { name->
-                    if (name.fullname?.equals(prefs.loginInfo?.fullName) == false) {
-                        userName.set(name.fullname)
-
-                    }
-                }
-            } else {
-                var participantNames = ""
-                it?.participants?.forEach {
-                    if (it.fullname?.equals(prefs.loginInfo?.fullName) == false) {
-                        participantNames += it.fullname.plus("\n")
-                    }
-                }
-                userName.set(participantNames)
-            }
-        }
     }
 
     /**

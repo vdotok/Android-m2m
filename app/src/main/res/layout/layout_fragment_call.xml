@@ -60,7 +60,7 @@
                 style="@style/Text_Call_Name"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:text="A group​"
+                android:text="@{username}"
                 tools:text="user name"
                 app:layout_constraintTop_toBottomOf="@id/tvCallType"
                 app:layout_constraintStart_toStartOf="parent" />

@@ -297,7 +297,8 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
                         mediaType = if (isVideo) com.vdotok.streaming.enums.MediaType.VIDEO else com.vdotok.streaming.enums.MediaType.AUDIO,
                         callType = CallType.MANY_TO_MANY,
                         sessionType = SessionType.CALL,
-                        isAppAudio = false
+                        isAppAudio = false,
+                        customDataPacket = groupModel.groupTitle
                     )
                 )
             }

@@ -109,13 +109,19 @@ class CallFragment : BaseFragment() {
         arguments?.get(GroupModel.TAG)?.let {
             groupModel = it as GroupModel?
             isIncomingCall = arguments?.get(DialCallFragment.IS_IN_COMING_CALL) as Boolean
+
         } ?: kotlin.run {
             groupList = arguments?.getParcelableArrayList<GroupModel>(DialCallFragment.GROUP_LIST) as ArrayList<GroupModel>
             name = (arguments?.get(DialCallFragment.USER_NAME) as CharSequence?).toString()
             callParams = arguments?.getParcelable(ApplicationConstants.CALL_PARAMS) as CallParams?
             isIncomingCall = true
-        }
 
+        }
+        if (isIncomingCall){
+            userName.set(callParams?.customDataPacket.toString())
+        }else{
+            userName.set(groupModel?.groupTitle)
+        }
         getIncomingUserName(isVideoCall)
         displayUi(isVideoCall)
 
@@ -136,13 +142,13 @@ class CallFragment : BaseFragment() {
         }
 
         binding.ivSpeaker.setOnClickListener {
-            isSpeakerOff = isSpeakerOff.not()
-            if (isSpeakerOff) {
+            if (callClient.isSpeakerEnabled()) {
+                callClient.setSpeakerEnable(false)
                 binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_off)
             } else {
+                callClient.setSpeakerEnable(true)
                 binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_on)
             }
-            callClient.toggleSpeakerOnOff()
         }
 
         val callback = object : OnBackPressedCallback(true // default to enabled
@@ -198,48 +204,6 @@ class CallFragment : BaseFragment() {
     }
 
     /**
-     * Function to set user name when call connected from outgoing call dial
-     * @param videoCall videoCall to check whether its an audio or video call
-     * @param groupModel groupModel object is to get group details
-     * */
-    private fun getUserName(groupModel: GroupModel?, videoCall: Boolean) {
-       groupModel.let { it ->
-            if (groupModel?.autoCreated == 1 && !videoCall) {
-                binding.tvCallType.text = getString(R.string.audio_calling)
-                it?.participants?.forEach { name->
-                    if (name.fullname?.equals(prefs.loginInfo?.fullName) == false) {
-                        userName.set(name.fullname)
-
-                    }
-                }
-            } else if (groupModel?.autoCreated == 0 && !videoCall) {
-                binding.tvCallType.text = getString(R.string.group_audio_calling)
-                var participantNames = ""
-                it?.participants?.forEach {
-                    if (it.fullname?.equals(prefs.loginInfo?.fullName) == false) {
-                        participantNames += it.fullname.plus("\n")
-                    }
-                }
-                userName.set(participantNames)
-
-            } else if (groupModel?.autoCreated == 1 && videoCall) {
-                binding.tvCallType.text = getString(R.string.video_calling)
-                it?.participants?.forEach { name->
-                    if (name.fullname?.equals(prefs.loginInfo?.fullName) == false) {
-                        userName.set(name.fullname)
-
-                    }
-                }
-            } else {
-                binding.tvCallType.text = getString(R.string.group_video_calling)
-                userName.set(it?.groupTitle)
-
-            }
-        }
-
-    }
-
-    /**
      * Function to set ui related to audio and video
      * @param videoCall videoCall to check whether its an audio or video call
      * */
@@ -248,9 +212,9 @@ class CallFragment : BaseFragment() {
         if (!isAdded) {
             return
         }
-        userName.set("A Group")
 
         if (!videoCall) {
+            callClient.setSpeakerEnable(false)
             isCallTypeAudio = true
             binding.containerVideoFrame.container1.remoteView.hide()
             binding.containerVideoFrame.container2.remoteView.hide()
@@ -267,8 +231,8 @@ class CallFragment : BaseFragment() {
             binding.ivCamSwitch.hide()
 
         } else {
+            callClient.setSpeakerEnable(true)
             isCallTypeAudio = false
-
             binding.containerVideoFrame.container1.groupAudioCall.hide()
             binding.containerVideoFrame.container2.groupAudioCall.hide()
             binding.containerVideoFrame.container3.groupAudioCall.hide()
