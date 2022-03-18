@@ -252,6 +252,11 @@ class CallFragment : BaseFragment() {
     }
 
     private fun updateCallUIViews(listUser: List<Participants>?) {
+        if (isCallTypeAudio){
+            binding.localView.hide()
+        }else{
+            binding.localView.show()
+        }
 
         listUser?.let {
             if (it.size == 1) {
@@ -428,7 +433,6 @@ class CallFragment : BaseFragment() {
                 val view = userMap.get(refId)
 
                 if (view == null) {
-
                     val container = getContainerParticipantView()
                     container.root.show()
                     userMap.put(refId, container)
