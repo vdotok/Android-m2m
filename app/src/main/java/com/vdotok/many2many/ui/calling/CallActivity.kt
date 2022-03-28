@@ -96,6 +96,15 @@ class CallActivity : BaseActivity() {
     }
 
     override fun incomingCall(callParams: CallParams) {
+        sessionId?.let {
+            if (callClient.getActiveSessionClient(it) != null) {
+                callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+            } else {
+                mListener?.onIncomingCall(callParams)
+            }
+        } ?: kotlin.run {
+            mListener?.onIncomingCall(callParams)
+        }
     }
 
 
