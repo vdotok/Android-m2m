@@ -29,5 +29,6 @@ interface FragmentCallback {
     fun onAudioVideoStateChanged(audioState: Int, videoState: Int) {}
     fun endOngoingCall(sessionId: String) {}
     fun onCallTimeout() {}
+    fun onInsuficientBalance(){}
 
 }

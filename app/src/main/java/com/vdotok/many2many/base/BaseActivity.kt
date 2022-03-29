@@ -137,7 +137,6 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     } ?: kotlin.run {
                         mListener?.onCallMissed()
                     }
-//                    mListener?.onCallMissed()
                 }
                 CallStatus.NO_ANSWER_FROM_TARGET -> {
                     mListener?.noAnsFromTarget()
@@ -147,6 +146,9 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 }
                 CallStatus.SESSION_TIMEOUT -> {
                     mListener?.onCallTimeout()
+                }
+                CallStatus.INSUFFICIENT_BALANCE ->{
+                    mListener?.onInsuficientBalance()
                 }
                 else -> {
                 }

@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
@@ -521,6 +522,11 @@ class CallFragment : BaseFragment() {
 
 
     override fun onCallMissed() {
+        activity?.finish()
+    }
+
+    override fun onInsuficientBalance() {
+        Toast.makeText(context, "Insufficient Balance", Toast.LENGTH_SHORT).show()
         activity?.finish()
     }
 

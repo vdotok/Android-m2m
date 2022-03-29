@@ -172,7 +172,7 @@ class DialCallFragment : BaseFragment() {
         }
     }
 
-    fun rejectCall() {
+    private fun rejectCall() {
         timerFro30sec?.cancel()
         if (isIncomingCall) {
             prefs.loginInfo?.let {
@@ -181,7 +181,7 @@ class DialCallFragment : BaseFragment() {
                     it1.sessionUUID)
                 }
             }
-            getActivity()?.finish()
+            activity?.finish()
         } else {
             (activity as CallActivity).endCall()
         }
@@ -192,10 +192,7 @@ class DialCallFragment : BaseFragment() {
     private fun acceptIncomingCall() {
 
         callParams?.let {
-
-            (activity as CallActivity).acceptIncomingCall(
-                it
-            )
+            (activity as CallActivity).acceptIncomingCall(it)
             openCallFragment()
         }
         timerFro30sec?.cancel()
@@ -247,10 +244,7 @@ class DialCallFragment : BaseFragment() {
                 bundle.putParcelable(GroupModel.TAG, groupModel)
                 bundle.putBoolean(IS_VIDEO_CALL, isVideoCall)
                 bundle.putBoolean(IS_IN_COMING_CALL, false)
-                Navigation.findNavController(binding.root).navigate(
-                    R.id.action_open_call_fragment,
-                    bundle
-                )
+                Navigation.findNavController(binding.root).navigate(R.id.action_open_call_fragment, bundle)
             }
         }
     }
@@ -280,6 +274,10 @@ class DialCallFragment : BaseFragment() {
 
     override fun onCallMissed() {
        closeFragmentWithMessage("Call Missed!")
+    }
+
+    override fun onInsuficientBalance() {
+        closeFragmentWithMessage("Insufficient Balance!")
     }
 
     override fun onCallEnd() {
