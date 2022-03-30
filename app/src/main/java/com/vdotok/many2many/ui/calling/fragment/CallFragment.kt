@@ -14,6 +14,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.databinding.ObservableField
+import com.google.gson.Gson
 import com.vdotok.many2many.R
 import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.base.BaseFragment
@@ -21,6 +22,8 @@ import com.vdotok.many2many.databinding.LayoutCallingUserBinding
 import com.vdotok.many2many.databinding.LayoutFragmentCallBinding
 import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.show
+import com.vdotok.many2many.extensions.showSnackBar
+import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.*
@@ -119,7 +122,7 @@ class CallFragment : BaseFragment() {
 
         }
         if (isIncomingCall){
-            userName.set(callParams?.customDataPacket.toString())
+            userName.set(getCallTitle(callParams?.customDataPacket.toString()))
         }else{
             userName.set(groupModel?.groupTitle)
         }
@@ -202,6 +205,11 @@ class CallFragment : BaseFragment() {
             binding.tvCallType.text = getString(R.string.video_calling)
         }
 
+    }
+
+    fun getCallTitle(customObject: String): String? {
+        val name = Gson().fromJson(customObject, CallNameModel::class.java)
+        return name.groupName
     }
 
     /**
@@ -525,11 +533,6 @@ class CallFragment : BaseFragment() {
         activity?.finish()
     }
 
-    override fun onInsuficientBalance() {
-        Toast.makeText(context, "Insufficient Balance", Toast.LENGTH_SHORT).show()
-        activity?.finish()
-    }
-
     override fun onCallEnd() {
         activity?.finish()
     }
@@ -636,6 +639,17 @@ class CallFragment : BaseFragment() {
             .y(yPoint)
             .setDuration(200)
             .start()
+    }
+
+    override fun onInsuficientBalance() {
+        closeFragmentWithMessage("Insufficient Balance!")
+    }
+
+    private fun closeFragmentWithMessage(message: String?) {
+        activity?.runOnUiThread {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            onCallEnd()
+        }
     }
 
 }

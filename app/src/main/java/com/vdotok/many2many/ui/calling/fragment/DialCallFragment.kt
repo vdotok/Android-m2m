@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
+import com.google.gson.Gson
 import com.vdotok.many2many.R
 import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.FragmentDialCallBinding
@@ -17,6 +18,7 @@ import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.launchPeriodicAsync
 import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.extensions.showSnackBar
+import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.ApplicationConstants
@@ -125,8 +127,13 @@ class DialCallFragment : BaseFragment() {
         } ?: kotlin.run {
             groupList = arguments?.getParcelableArrayList<GroupModel>(GROUP_LIST) as ArrayList<GroupModel>
             callParams = arguments?.get(ApplicationConstants.CALL_PARAMS) as CallParams?
-            username = callParams?.customDataPacket.toString()
+            username = getCallTitle(callParams?.customDataPacket.toString())
         }
+    }
+
+    fun getCallTitle(customObject: String): String? {
+        val name = Gson().fromJson(customObject, CallNameModel::class.java)
+        return name.groupName
     }
     /**
      * Function to set data when outgoing call dial is implemented and setonClickListener
@@ -286,7 +293,7 @@ class DialCallFragment : BaseFragment() {
 
     private fun closeFragmentWithMessage(message: String?) {
         activity?.runOnUiThread {
-            binding.root.showSnackBar(message)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             onCallEnd()
         }
     }

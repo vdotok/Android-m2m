@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.databinding.ObservableField
 import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
+import com.google.gson.Gson
 import com.vdotok.many2many.R
 import com.vdotok.many2many.adapter.GroupsAdapter
 import com.vdotok.many2many.base.BaseActivity
@@ -27,6 +28,7 @@ import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.extensions.toggleVisibility
 import com.vdotok.many2many.feature.account.viewmodel.GroupViewModel
+import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.network.HttpResponseCodes
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.account.AccountsActivity
@@ -298,7 +300,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
                         callType = CallType.MANY_TO_MANY,
                         sessionType = SessionType.CALL,
                         isAppAudio = false,
-                        customDataPacket = groupModel.groupTitle
+                        customDataPacket = setCallTitleCustomObject(null, groupModel.groupTitle, "1")
                     )
                 )
             }
@@ -409,6 +411,11 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     private fun checkNetworkStatPermission() {
         if (!checkNetPermissions())
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+    }
+
+
+    fun setCallTitleCustomObject(calleName: String?, groupName: String?, autoCreated: String?): String {
+        return Gson().toJson(CallNameModel(calleName,groupName,autoCreated), CallNameModel::class.java)
     }
 
     private fun checkNetPermissions(): Boolean {

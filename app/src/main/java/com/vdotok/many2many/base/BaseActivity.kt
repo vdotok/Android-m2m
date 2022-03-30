@@ -108,6 +108,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 CallStatus.CALL_CONNECTED -> {
                     mListener?.onStartCalling()
                 }
+                CallStatus.SERVICE_SUSPENDED,
                 CallStatus.OUTGOING_CALL_ENDED,
                 CallStatus.NO_SESSION_EXISTS-> {
 
