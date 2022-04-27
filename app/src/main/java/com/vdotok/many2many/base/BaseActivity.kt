@@ -94,7 +94,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
     override fun onSessionReady(mediaProjection: MediaProjection?) {}
 
-    override fun participantCount(participantCount: Int, participantRefIdList: ArrayList<String>) {}
+    override fun multiSessionCreated(sessionIds: Pair<String, String>) {}
 
     override fun audioVideoState(state: SessionStateInfo) {
         runOnUiThread {
