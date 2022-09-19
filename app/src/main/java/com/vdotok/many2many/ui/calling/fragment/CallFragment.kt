@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.databinding.ObservableField
 import com.google.gson.Gson
 import com.vdotok.many2many.R
+import com.vdotok.many2many.VdoTok
 import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.LayoutCallingUserBinding
@@ -171,11 +172,13 @@ class CallFragment : BaseFragment() {
             if (isVideoCall) {
                 binding.localView.showHideAvatar(true)
                 (activity as CallActivity).pauseVideo()
+                (activity?.application as VdoTok).camView = false
                 binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             } else {
                 (activity as CallActivity).resumeVideo()
                 binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
                 binding.localView.showHideAvatar(false)
+                (activity?.application as VdoTok).camView = true
 
             }
             isVideoCall = !isVideoCall
