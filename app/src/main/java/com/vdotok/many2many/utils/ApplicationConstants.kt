@@ -7,6 +7,7 @@ package com.vdotok.many2many.utils
  */
 object ApplicationConstants {
 //    SDK AUTH PARAMS
+
     const val SDK_PROJECT_ID = "Add Your project id here"
 
 //    PREFS CONSTANTS
