@@ -10,6 +10,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.vdotok.many2many.R
+import com.vdotok.many2many.VdoTok
 import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.databinding.ActivityDashBoardBinding
 import com.vdotok.many2many.prefs.Prefs
@@ -84,6 +85,7 @@ class DashBoardActivity: BaseActivity() {
 
 
     override fun incomingCall(callParams: CallParams) {
+        (application as VdoTok).mediaTypeCheck = callParams.mediaType
         sessionId?.let {
             if (callClient.getActiveSessionClient(it) != null) {
                 callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
@@ -118,6 +120,7 @@ class DashBoardActivity: BaseActivity() {
     }
 
     fun diaMany2ManyCall(callParams: CallParams) {
+        (application as VdoTok).mediaTypeCheck = callParams.mediaType
         sessionId = callClient.dialMany2ManyCall(callParams)
     }
 
