@@ -135,6 +135,7 @@
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+
         <com.vdotok.streaming.views.CallViewRenderer
             android:id="@+id/localView"
             android:layout_width="130dp"
