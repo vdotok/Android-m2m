@@ -68,6 +68,7 @@ class CallActivity : BaseActivity() {
     }
 
     fun endCall() {
+        turnMicOff()
         turnSpeakerOff()
         localStream = null
         sessionId?.let {
@@ -92,6 +93,12 @@ class CallActivity : BaseActivity() {
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         audioManager?.let {
             it.isSpeakerphoneOn = false
+        }
+    }
+
+    fun turnMicOff() {
+        if (!callClient.isAudioEnabled(sessionId.toString())){
+            callClient.muteUnMuteMic(prefs.loginInfo?.refId.toString(),sessionId.toString())
         }
     }
 

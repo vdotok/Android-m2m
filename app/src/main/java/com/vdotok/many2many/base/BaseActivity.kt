@@ -113,6 +113,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 CallStatus.NO_SESSION_EXISTS-> {
 
                     if (this@BaseActivity is CallActivity) {
+                        turnMicOff()
                         turnSpeakerOff()
                         mLiveDataEndCall.postValue(true)
                     }
@@ -273,9 +274,6 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
         mListener?.onRemoteStreamReceived(refId, sessionID)
     }
 
-    override fun memoryUsageDetails(memoryUsage: Long) {
-    }
-
     override fun sendCurrentDataUsage(sessionKey: String, usage: Usage) {
         prefs.loginInfo?.refId?.let { refId ->
             Log.e("statsSdk", "currentSentUsage: ${usage.currentSentBytes}, currentReceivedUsage: ${usage.currentReceivedBytes}")
@@ -299,6 +297,9 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 stats = sessionDataModel
             )
         }
+    }
+
+    override fun sessionReconnecting(sessionID: String) {
     }
 
     override fun sessionHold(sessionUUID: String) {

@@ -16,7 +16,7 @@ import com.vdotok.network.models.LoginResponse
  * @param context the context of the application or the activity from where it is called
  */
 class Prefs(context: Context?) {
-    private val mPrefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+    private val mPrefs: SharedPreferences = context?.getSharedPreferences("countPref", Context.MODE_PRIVATE)!!
 
     var loginInfo: LoginResponse?
         get(){

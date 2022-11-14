@@ -125,6 +125,7 @@ class DashBoardActivity: BaseActivity() {
     }
 
     fun logout() {
+        callClient.disConnectSocket()
         callClient.unRegister(
             ownRefId = prefs.loginInfo?.refId.toString()
         )
