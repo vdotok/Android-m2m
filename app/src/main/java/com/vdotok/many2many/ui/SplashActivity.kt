@@ -1,5 +1,6 @@
 package com.vdotok.many2many.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,6 +9,7 @@ import androidx.databinding.DataBindingUtil
 import com.vdotok.many2many.R
 import com.vdotok.many2many.databinding.ActivitySplashBinding
 import com.vdotok.many2many.prefs.Prefs
+import com.vdotok.many2many.service.OnClearFromRecentService
 import com.vdotok.many2many.ui.account.AccountsActivity.Companion.createAccountsActivity
 import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.ViewUtils.setStatusBarGradient
@@ -19,7 +21,7 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        startService(Intent(this, OnClearFromRecentService::class.java))
         setStatusBarGradient(this, R.drawable.ic_account_gradient_bg)
         init()
 

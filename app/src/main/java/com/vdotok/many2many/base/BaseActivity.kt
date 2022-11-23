@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import com.google.android.material.snackbar.Snackbar
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.utils.NetworkStatusLiveData
@@ -117,8 +118,6 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                         turnSpeakerOff()
                         mLiveDataEndCall.postValue(true)
                     }
-
-//                    sessionId?.let { mListener?.endOngoingCall(it) }
                 }
                 CallStatus.CALL_REJECTED,
                 CallStatus.PARTICIPANT_LEFT_CALL  -> {

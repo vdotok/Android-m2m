@@ -47,11 +47,11 @@ class CallActivity : BaseActivity() {
                 intent.extras
             )
 
-        mLiveDataEndCall.observe(this, {
+        mLiveDataEndCall.observe(this){
             if (it) {
                 mListener?.onCallEnd()
             }
-        })
+        }
         mLiveDataLeftParticipant.observe(this, {
             if (!TextUtils.isEmpty(it)) {
                 mListener?.onParticipantLeftCall(it)
@@ -113,16 +113,6 @@ class CallActivity : BaseActivity() {
             mListener?.onIncomingCall(callParams)
         }
     }
-
-
-//    fun endCall() {
-//        turnSpeakerOff()
-//        localStream = null
-//        sessionId?.let {
-//            callClient.endCallSession(arrayListOf(it))
-//        }
-//    }
-
 
     fun pauseVideo() {
         sessionId?.let {
@@ -188,6 +178,7 @@ class CallActivity : BaseActivity() {
                 }
                 putString(Session_ID, sessionId)
             })
+            this.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
     }
 

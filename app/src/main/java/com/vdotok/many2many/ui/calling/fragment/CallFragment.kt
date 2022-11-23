@@ -27,6 +27,7 @@ import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
+import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.*
 import com.vdotok.many2many.utils.TimeUtils.getTimeFromSeconds
 import com.vdotok.network.models.GroupModel
@@ -81,6 +82,7 @@ class CallFragment : BaseFragment() {
     private var xPoint = 0.0f
     private var yPoint = 0.0f
     private val listUser =  ArrayList<Participants>()
+    var isCamSwitch = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -163,25 +165,37 @@ class CallFragment : BaseFragment() {
             this.viewLifecycleOwner,  // LifecycleOwner
             callback
         )
-        binding.ivCamSwitch.setOnClickListener { (activity as CallActivity).switchCamera() }
+        binding.ivCamSwitch.setOnClickListener {
+            if (!isCamSwitch) {
+                binding.localView.getPreview().setMirror(false)
+            } else {
+                binding.localView.getPreview().setMirror(true)
+            }
+            isCamSwitch = isCamSwitch.not()
+            (activity as CallActivity).switchCamera()
+        }
 
         binding.imgCamera.setOnClickListener {
-            if (isCallTypeAudio) {
-                return@setOnClickListener
-            }
-            if (isVideoCall) {
-                binding.localView.showHideAvatar(true)
-                (activity as CallActivity).pauseVideo()
-                (activity?.application as VdoTok).camView = false
-                binding.imgCamera.setImageResource(R.drawable.ic_video_off)
-            } else {
-                (activity as CallActivity).resumeVideo()
-                binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
-                binding.localView.showHideAvatar(false)
-                (activity?.application as VdoTok).camView = true
+                if (isCallTypeAudio) {
+                    return@setOnClickListener
+                }
+            activity?.runOnUiThread {
+                if (isVideoCall) {
+                    binding.localView.hide()
+                    binding.localView.showHideAvatar(true)
+                    (activity as CallActivity).pauseVideo()
+                    (activity?.application as VdoTok).camView = false
+                    binding.imgCamera.setImageResource(R.drawable.ic_video_off)
+                } else {
+                    binding.localView.show()
+                    binding.localView.showHideAvatar(false)
+                    (activity as CallActivity).resumeVideo()
+                    binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
+                    (activity?.application as VdoTok).camView = true
 
+                }
+                isVideoCall = !isVideoCall
             }
-            isVideoCall = !isVideoCall
         }
 
         addTouchEventListener()
@@ -285,6 +299,7 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container1.root.requestLayout()
 
                 ViewCompat.setElevation(binding.containerVideoFrame.container1.root, -1f)
+                binding.containerVideoFrame.container1.remoteView.getPreview().setZOrderOnTop(false)
 
             } else if (it.size == 2) {
 
@@ -308,9 +323,10 @@ class CallFragment : BaseFragment() {
 
                 ViewCompat.setElevation(binding.containerVideoFrame.container1.root, -1f)
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
+                binding.containerVideoFrame.container1.remoteView.getPreview().setZOrderOnTop(false)
+                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
 
             } else if (it.size == 3) {
-
                 binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.show()
                 binding.containerVideoFrame.container2.root.show()
@@ -331,6 +347,7 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container2.root.requestLayout()
 
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
+                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
 
             } else if (it.size == 4) {
 
@@ -351,6 +368,7 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container2.root.layoutParams = params2
                 binding.containerVideoFrame.container2.root.requestLayout()
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
+                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
 
             }
         }
@@ -504,6 +522,7 @@ class CallFragment : BaseFragment() {
 
             try {
                 stream.addSink(binding.localView.setView())
+                binding.localView.getPreview().setMirror(true)
                 ViewCompat.setElevation(binding.localView, 11f)
                 binding.localView.getPreview().setZOrderMediaOverlay(true)
                 binding.localView.getPreview().setZOrderOnTop(true)
@@ -517,7 +536,6 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onCameraAudioOff(audioState: Int, videoState: Int, refId: String) {
-
         activity?.runOnUiThread {
             val view = userMap.get(refId)
             view?.let {
@@ -541,23 +559,18 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onParticipantLeftCall(refId: String?) {
-
-        refId?.let {
-
-            val view = userMap.get(refId)
-            view?.let {
-
-                val participant = listUser.find { it.refId == refId }
-                participant?.let {
-                    listUser.remove(participant)
+            refId?.let {
+                val view = userMap.get(refId)
+                view?.let {
+                    val participant = listUser.find { it.refId == refId }
+                    participant?.let {
+                    listUser.remove(participant) }
+                    view.remoteView.hide()
+                    view.imgCallOff.show()
+                    view.groupAudioCall.show()
+                    userMap.remove(refId)
                 }
-                view.remoteView.hide()
-
-                view.imgCallOff.show()
-                view.groupAudioCall.show()
-                userMap.remove(refId)
             }
-        }
     }
 
     override fun onDestroyView() {

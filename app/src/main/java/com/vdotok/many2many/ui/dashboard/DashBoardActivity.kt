@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -85,15 +87,17 @@ class DashBoardActivity: BaseActivity() {
 
 
     override fun incomingCall(callParams: CallParams) {
-        (application as VdoTok).mediaTypeCheck = callParams.mediaType
-        sessionId?.let {
-            if (callClient.getActiveSessionClient(it) != null) {
-                callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
-            } else {
-                mListener?.onIncomingCall(callParams)
-            }
-        } ?: kotlin.run {
-            mListener?.onIncomingCall(callParams)
+        runOnUiThread {
+                (application as VdoTok).mediaTypeCheck = callParams.mediaType
+                sessionId?.let {
+                    if (callClient.getActiveSessionClient(it) != null) {
+                        callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+                    } else {
+                        mListener?.onIncomingCall(callParams)
+                    }
+                } ?: kotlin.run {
+                    mListener?.onIncomingCall(callParams)
+                }
         }
 
     }

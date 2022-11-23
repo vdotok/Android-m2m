@@ -140,6 +140,7 @@
             android:id="@+id/localView"
             android:layout_width="130dp"
             android:layout_height="170dp"
+            android:elevation="20dp"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="20dp"
             android:keepScreenOn="true"
