@@ -122,8 +122,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     }
                     CallStatus.CALL_REJECTED,
                     CallStatus.PARTICIPANT_LEFT_CALL -> {
-                       Log.d("alpha",callInfoResponse.callStatus.toString()+"\n"+callInfoResponse.responseMessage.toString())
-                        callInfoResponse.callParams?.refId?.let {
+                      callInfoResponse.callParams?.refId?.let {
                             if (it.isNotEmpty()) {
                                 mListener?.onCallRejected(it)
                             }
@@ -135,8 +134,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                         }
                     }
                     CallStatus.CALL_MISSED -> {
-                        Log.d("alpha1",callInfoResponse.callStatus.toString()+"\n"+callInfoResponse.responseMessage.toString())
-                        sessionId?.let {
+                       sessionId?.let {
                             if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity)
                                 mLiveDataEndCall.postValue(true)
                         } ?: kotlin.run {
