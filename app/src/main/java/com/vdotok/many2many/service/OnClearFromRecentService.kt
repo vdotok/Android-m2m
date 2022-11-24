@@ -2,7 +2,9 @@ package com.vdotok.many2many.service
 
 import android.app.Service
 import android.content.Intent
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import com.vdotok.many2many.VdoTok
 
@@ -24,12 +26,11 @@ class OnClearFromRecentService : Service() {
 
     override fun onTaskRemoved(rootIntent: Intent) {
         Log.e("ClearFromRecentService", "END")
-        val sessionList = ArrayList<String>().apply {
-                add((application as VdoTok).callClient.recentSession().toString())
+        (application as VdoTok).callClient.recentSession()?.let {
+            (application as VdoTok).callClient.endCallSession(arrayListOf(it))
         }
-        Log.e("ClearFromRecentService", "END$sessionList")
-        (application as VdoTok).callClient.endCallSession(sessionList)
         (application as VdoTok).callClient.disConnectSocket()
         stopSelf()
+
     }
 }

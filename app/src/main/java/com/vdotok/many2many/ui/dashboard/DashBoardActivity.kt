@@ -102,11 +102,6 @@ class DashBoardActivity: BaseActivity() {
 
     }
 
-    override fun onDestroy() {
-        callClient.disConnectSocket()
-        super.onDestroy()
-    }
-
     override fun onResume() {
         askForPermissions()
         super.onResume()
