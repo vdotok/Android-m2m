@@ -113,11 +113,11 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     CallStatus.OUTGOING_CALL_ENDED,
                     CallStatus.NO_SESSION_EXISTS -> {
                         sessionId?.let {
-                            if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity){
+                            if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity) {
                                 turnMicOff()
-                            turnSpeakerOff()
-                            mLiveDataEndCall.postValue(true)
-                        }
+                                turnSpeakerOff()
+                                mLiveDataEndCall.postValue(true)
+                            }
                     }
                     }
                     CallStatus.CALL_REJECTED,
