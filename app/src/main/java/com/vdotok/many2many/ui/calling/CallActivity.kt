@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.AudioManager
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.findNavController
@@ -15,6 +16,7 @@ import com.vdotok.many2many.models.AcceptCallModel
 import com.vdotok.many2many.ui.calling.fragment.DialCallFragment
 import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.network.models.GroupModel
+import com.vdotok.streaming.enums.PermissionType
 import com.vdotok.streaming.models.CallParams
 import com.vdotok.streaming.models.SessionStateInfo
 
@@ -47,16 +49,16 @@ class CallActivity : BaseActivity() {
                 intent.extras
             )
 
-        mLiveDataEndCall.observe(this){
+        mLiveDataEndCall.observe(this) {
             if (it) {
                 mListener?.onCallEnd()
             }
         }
-        mLiveDataLeftParticipant.observe(this, {
+        mLiveDataLeftParticipant.observe(this) {
             if (!TextUtils.isEmpty(it)) {
                 mListener?.onParticipantLeftCall(it)
             }
-        })
+        }
     }
 
     fun acceptIncomingCall(callParams: CallParams) {
@@ -78,6 +80,13 @@ class CallActivity : BaseActivity() {
         finish()
     }
 
+    fun turnMicOff() {
+        if (!callClient.isAudioEnabled(sessionId.toString())){
+            callClient.muteUnMuteMic(prefs.loginInfo?.refId.toString(),sessionId.toString())
+        }
+    }
+
+
     override fun audioVideoState(state: SessionStateInfo) {
         runOnUiThread {
             mListener?.onCameraAudioOff(state.audioState!!, state.videoState!!, state.refID!!)
@@ -96,12 +105,6 @@ class CallActivity : BaseActivity() {
         }
     }
 
-    fun turnMicOff() {
-        if (!callClient.isAudioEnabled(sessionId.toString())){
-            callClient.muteUnMuteMic(prefs.loginInfo?.refId.toString(),sessionId.toString())
-        }
-    }
-
     override fun incomingCall(callParams: CallParams) {
         sessionId?.let {
             if (callClient.getActiveSessionClient(it) != null) {
@@ -113,6 +116,24 @@ class CallActivity : BaseActivity() {
             mListener?.onIncomingCall(callParams)
         }
     }
+
+    override fun permissionError(permissionErrorList: ArrayList<PermissionType>) {
+//        TODO("Not yet implemented")
+    }
+
+    override fun sessionReconnecting(sessionID: String) {
+//        TODO("Not yet implemented")
+    }
+
+
+//    fun endCall() {
+//        turnSpeakerOff()
+//        localStream = null
+//        sessionId?.let {
+//            callClient.endCallSession(arrayListOf(it))
+//        }
+//    }
+
 
     fun pauseVideo() {
         sessionId?.let {

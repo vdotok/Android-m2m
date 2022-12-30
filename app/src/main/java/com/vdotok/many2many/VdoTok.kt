@@ -7,6 +7,7 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.enums.MediaType
+import org.webrtc.EglBase
 
 
 /**
@@ -19,6 +20,7 @@ class VdoTok : Application() {
     private lateinit var prefs : Prefs
     var mediaTypeCheck: MediaType? = null
     var camView :Boolean = true
+    val rootEglBase = EglBase.create()
     private var lifecycleEventObserver = LifecycleEventObserver { _, event ->
        when (event) {
           Lifecycle.Event.ON_RESUME -> {
@@ -41,6 +43,9 @@ class VdoTok : Application() {
                    }
                }
               }
+           Lifecycle.Event.ON_DESTROY -> {
+               rootEglBase.release()
+           }
             else -> {}
          }
      }

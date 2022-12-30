@@ -15,8 +15,11 @@ import com.vdotok.many2many.extensions.*
 import com.vdotok.many2many.feature.account.viewmodel.AccountViewModel
 import com.vdotok.many2many.network.HttpResponseCodes
 import com.vdotok.many2many.prefs.Prefs
-import com.vdotok.many2many.utils.*
 import com.vdotok.many2many.utils.ApplicationConstants.SDK_PROJECT_ID
+import com.vdotok.many2many.utils.disable
+import com.vdotok.many2many.utils.enable
+import com.vdotok.many2many.utils.handleLoginResponse
+import com.vdotok.many2many.utils.isInternetAvailable
 import com.vdotok.network.models.LoginResponse
 import com.vdotok.network.models.SignUpModel
 import com.vdotok.network.network.Result

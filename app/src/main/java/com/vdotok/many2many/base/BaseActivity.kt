@@ -8,13 +8,12 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
 import com.google.android.material.snackbar.Snackbar
-import com.vdotok.many2many.prefs.Prefs
-import com.vdotok.many2many.utils.NetworkStatusLiveData
 import com.vdotok.many2many.extensions.showSnackBar
+import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.ApplicationConstants
+import com.vdotok.many2many.utils.NetworkStatusLiveData
 import com.vdotok.network.models.LoginResponse
 import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.commands.CallInfoResponse

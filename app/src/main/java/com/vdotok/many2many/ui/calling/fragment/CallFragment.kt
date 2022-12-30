@@ -23,11 +23,9 @@ import com.vdotok.many2many.databinding.LayoutCallingUserBinding
 import com.vdotok.many2many.databinding.LayoutFragmentCallBinding
 import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.show
-import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
-import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.*
 import com.vdotok.many2many.utils.TimeUtils.getTimeFromSeconds
 import com.vdotok.network.models.GroupModel
@@ -39,7 +37,6 @@ import kotlinx.android.synthetic.main.layout_calling_user.view.*
 import kotlinx.android.synthetic.main.layout_fragment_call.*
 import org.webrtc.VideoTrack
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 const val THRESHOLD_VALUE = 70.0f

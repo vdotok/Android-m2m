@@ -49,11 +49,12 @@
             android:layout_height="wrap_content"
             app:constraint_referenced_ids="tvUserName, imgUserPhoto" />
 
-        <com.vdotok.streaming.views.CallViewRenderer
+        <com.vdotok.many2many.utils.CustomCallView
             android:id="@+id/remoteView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
+            android:keepScreenOn="true"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

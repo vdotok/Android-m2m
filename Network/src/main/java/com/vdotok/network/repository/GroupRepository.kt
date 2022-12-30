@@ -1,15 +1,11 @@
 package com.vdotok.network.repository
 
 import com.vdotok.network.models.*
-import com.vdotok.network.network.*
+import com.vdotok.network.network.Result
 import com.vdotok.network.network.api.ApiService
 import com.vdotok.network.network.safeApiCall
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.Header
-import retrofit2.http.POST
 import javax.inject.Inject
 
 class GroupRepository @Inject constructor(

@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -18,8 +16,8 @@ import com.vdotok.many2many.databinding.ActivityDashBoardBinding
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.many2many.utils.ViewUtils.setStatusBarGradient
+import com.vdotok.streaming.enums.PermissionType
 import com.vdotok.streaming.models.CallParams
-import com.vdotok.streaming.models.SessionStateInfo
 
 /**
  * Created By: VdoTok
@@ -100,6 +98,10 @@ class DashBoardActivity: BaseActivity() {
                 }
         }
 
+    }
+
+    override fun permissionError(permissionErrorList: ArrayList<PermissionType>) {
+//        TODO("Not yet implemented")
     }
 
     override fun onResume() {

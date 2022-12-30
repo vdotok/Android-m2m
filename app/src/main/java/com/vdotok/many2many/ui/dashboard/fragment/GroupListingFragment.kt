@@ -45,7 +45,6 @@ import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.enums.*
 import com.vdotok.streaming.models.CallParams
 import kotlinx.coroutines.*
-import okhttp3.MediaType
 import org.webrtc.VideoTrack
 import retrofit2.HttpException
 import java.util.*
@@ -219,6 +218,10 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
 
     }
 
+    fun setCallTitleCustomObject(calleName: String?, groupName: String?, autoCreated: String?): String {
+        return Gson().toJson(CallNameModel(calleName,groupName,autoCreated), CallNameModel::class.java)
+    }
+
     override fun onResume() {
         BaseActivity.mListener = this
         if (callClient.isConnected() == true) {
@@ -250,7 +253,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
      * Function to call api for deleting a group from server
      * */
     private fun deleteGroup(model: DeleteGroupModel) {
-        viewModelGroup.deleteGroup(this.prefs, model).observe(viewLifecycleOwner){
+        viewModelGroup.deleteGroup(this.prefs, model).observe(viewLifecycleOwner) {
             try {
                 when (it) {
                     is com.vdotok.network.network.Result.Success -> {
@@ -297,7 +300,6 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
                     CallParams(
                         refId = it.refId!!,
                         toRefIds = refIdList,
-                        mcToken = it.mcToken.toString(),
                         mediaType = if (isVideo) com.vdotok.streaming.enums.MediaType.VIDEO else com.vdotok.streaming.enums.MediaType.AUDIO,
                         callType = CallType.MANY_TO_MANY,
                         sessionType = SessionType.CALL,
@@ -358,23 +360,18 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
             val bundle = Bundle()
             bundle.putParcelableArrayList(DialCallFragment.GROUP_LIST, groupList)
             bundle.putString(DialCallFragment.USER_NAME, getUsername(model.refId))
+//            bundle.putParcelable(AcceptCallModel.TAG, model)
             bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, true)
-            bundle.putBoolean(
-                DialCallFragment.IS_VIDEO_CALL,
-                model.mediaType == com.vdotok.streaming.enums.MediaType.VIDEO
-            )
-            startActivity(
-                CallActivity.createIntent(
-                    requireContext(),
-                    null,
-                    false,
-                    false,
-                    null,
-                    model,
-                    (requireActivity() as BaseActivity).sessionId,
-                    groupList
-                )
-            )
+            bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, model.mediaType == com.vdotok.streaming.enums.MediaType.VIDEO)
+//            Navigation.findNavController(binding.root).navigate(
+//                R.id.action_open_dial_fragment,
+//                bundle
+//            )
+
+            startActivity(CallActivity.createIntent(requireContext(),
+                null, false, false, null, model, (requireActivity() as BaseActivity).sessionId, groupList))
+
+
         }
     }
     /**
@@ -418,11 +415,6 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     private fun checkNetworkStatPermission() {
         if (!checkNetPermissions())
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
-    }
-
-
-    fun setCallTitleCustomObject(calleName: String?, groupName: String?, autoCreated: String?): String {
-        return Gson().toJson(CallNameModel(calleName,groupName,autoCreated), CallNameModel::class.java)
     }
 
     private fun checkNetPermissions(): Boolean {

@@ -12,8 +12,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.vdotok.many2many.R
 import com.vdotok.many2many.databinding.GroupChatRowBinding
-import com.vdotok.network.models.GroupModel
 import com.vdotok.many2many.utils.performSingleClick
+import com.vdotok.network.models.GroupModel
 
 
 /**

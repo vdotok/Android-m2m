@@ -1,21 +1,17 @@
 package com.vdotok.many2many.ui.calling.fragment
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.findNavController
 import com.google.gson.Gson
 import com.vdotok.many2many.R
-import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.FragmentDialCallBinding
 import com.vdotok.many2many.extensions.hide

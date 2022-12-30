@@ -1,7 +1,6 @@
 package com.vdotok.network.network.api
 
 import com.vdotok.network.models.*
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST

@@ -6,6 +6,9 @@ package com.vdotok.many2many.utils
  * Date & Time: On 5/5/21 At 5:06 PM in 2021
  */
 object ApplicationConstants {
+
+    const val CALL_PARAMS = "call_params"
+
 //    SDK AUTH PARAMS
 
     const val SDK_PROJECT_ID = "Add Your project id here"
@@ -26,7 +29,6 @@ object ApplicationConstants {
     const val DOCS_DIRECTORY = "/VdoTok-MTM/docs"
     const val MAIN_DOCS_DIRECTORY_NAME = "VdoTok-MTM"
     const val CALL_LOGS_FILE_NAME = "VdoTok_Call_Logs"
-    const val CALL_PARAMS = "call_params"
 
     // This error code means a local error occurred while parsing the received json.
 
