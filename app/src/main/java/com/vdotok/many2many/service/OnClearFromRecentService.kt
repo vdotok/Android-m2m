@@ -29,6 +29,5 @@ class OnClearFromRecentService : Service() {
         }
         (application as VdoTok).callClient.disConnectSocket()
         stopSelf()
-
     }
 }

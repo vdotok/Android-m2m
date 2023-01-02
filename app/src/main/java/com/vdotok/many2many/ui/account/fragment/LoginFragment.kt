@@ -14,12 +14,10 @@ import com.vdotok.many2many.extensions.checkValidation
 import com.vdotok.many2many.extensions.checkedPassword
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.extensions.toggleVisibility
-import com.vdotok.many2many.feature.account.viewmodel.AccountViewModel
 import com.vdotok.many2many.prefs.Prefs
-import com.vdotok.many2many.utils.disable
-import com.vdotok.many2many.utils.enable
-import com.vdotok.many2many.utils.handleLoginResponse
+import com.vdotok.many2many.utils.*
 import com.vdotok.network.network.Result
+import com.vdotok.many2many.feature.account.viewmodel.AccountViewModel
 
 
 /**

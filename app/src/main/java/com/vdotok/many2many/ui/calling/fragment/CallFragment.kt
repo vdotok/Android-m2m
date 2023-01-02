@@ -17,6 +17,7 @@ import androidx.databinding.ObservableField
 import com.google.gson.Gson
 import com.vdotok.many2many.R
 import com.vdotok.many2many.VdoTok
+import com.vdotok.many2many.VdoTok.Companion.getVdotok
 import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.LayoutCallingUserBinding
@@ -37,6 +38,7 @@ import kotlinx.android.synthetic.main.layout_calling_user.view.*
 import kotlinx.android.synthetic.main.layout_fragment_call.*
 import org.webrtc.VideoTrack
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 const val THRESHOLD_VALUE = 70.0f
@@ -113,13 +115,11 @@ class CallFragment : BaseFragment() {
         arguments?.get(GroupModel.TAG)?.let {
             groupModel = it as GroupModel?
             isIncomingCall = arguments?.get(DialCallFragment.IS_IN_COMING_CALL) as Boolean
-
         } ?: kotlin.run {
             groupList = arguments?.getParcelableArrayList<GroupModel>(DialCallFragment.GROUP_LIST) as ArrayList<GroupModel>
             name = (arguments?.get(DialCallFragment.USER_NAME) as CharSequence?).toString()
             callParams = arguments?.getParcelable(ApplicationConstants.CALL_PARAMS) as CallParams?
             isIncomingCall = true
-
         }
         if (isIncomingCall){
             userName.set(getCallTitle(callParams?.customDataPacket.toString()))
@@ -131,6 +131,9 @@ class CallFragment : BaseFragment() {
 
         binding.imgCallOff.performSingleClick {
             stopTimer()
+            if (isVideoCall) {
+                releaseCallViews()
+            }
             (activity as CallActivity).endCall()
         }
 
@@ -164,18 +167,18 @@ class CallFragment : BaseFragment() {
         )
         binding.ivCamSwitch.setOnClickListener {
             if (!isCamSwitch) {
-                binding.localView.getPreview().setMirror(false)
+                binding.localView.preview.setMirror(false)
             } else {
-                binding.localView.getPreview().setMirror(true)
+                binding.localView.preview.setMirror(true)
             }
             isCamSwitch = isCamSwitch.not()
             (activity as CallActivity).switchCamera()
         }
 
         binding.imgCamera.setOnClickListener {
-                if (isCallTypeAudio) {
-                    return@setOnClickListener
-                }
+            if (isCallTypeAudio) {
+                return@setOnClickListener
+            }
             activity?.runOnUiThread {
                 if (isVideoCall) {
                     binding.localView.hide()
@@ -208,6 +211,15 @@ class CallFragment : BaseFragment() {
         binding.containerVideoFrame.container4.root.setTag("4")
 
     }
+
+    private fun releaseCallViews() {
+        binding.localView.release()
+        binding.containerVideoFrame.container1.remoteView.release()
+        binding.containerVideoFrame.container2.remoteView.release()
+        binding.containerVideoFrame.container3.remoteView.release()
+        binding.containerVideoFrame.container4.remoteView.release()
+    }
+
     /**
      * Function to set user name when call connected from incoming call dial
      * @param videoCall videoCall to check whether its an audio or video call
@@ -219,11 +231,6 @@ class CallFragment : BaseFragment() {
             binding.tvCallType.text = getString(R.string.video_calling)
         }
 
-    }
-
-    fun getCallTitle(customObject: String): String? {
-        val name = Gson().fromJson(customObject, CallNameModel::class.java)
-        return name.groupName
     }
 
     /**
@@ -238,6 +245,7 @@ class CallFragment : BaseFragment() {
 
         if (!videoCall) {
             callClient.setSpeakerEnable(false)
+            binding.localView.hide()
             isCallTypeAudio = true
             binding.containerVideoFrame.container1.remoteView.hide()
             binding.containerVideoFrame.container2.remoteView.hide()
@@ -256,6 +264,8 @@ class CallFragment : BaseFragment() {
         } else {
             callClient.setSpeakerEnable(true)
             isCallTypeAudio = false
+            initiateView()
+            binding.localView.show()
             binding.containerVideoFrame.container1.groupAudioCall.hide()
             binding.containerVideoFrame.container2.groupAudioCall.hide()
             binding.containerVideoFrame.container3.groupAudioCall.hide()
@@ -272,6 +282,14 @@ class CallFragment : BaseFragment() {
         }
 
         updateCallUIViews(listUser)
+    }
+
+    private fun initiateView() {
+        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.localView.initiateCallView(it) }
+        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container1.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container2.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container3.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container4.remoteView.initiateCallView(it) }
     }
 
     private fun updateCallUIViews(listUser: List<Participants>?) {
@@ -296,7 +314,7 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container1.root.requestLayout()
 
                 ViewCompat.setElevation(binding.containerVideoFrame.container1.root, -1f)
-                binding.containerVideoFrame.container1.remoteView.getPreview().setZOrderOnTop(false)
+                binding.containerVideoFrame.container1.remoteView.preview.setZOrderOnTop(false)
 
             } else if (it.size == 2) {
 
@@ -320,10 +338,11 @@ class CallFragment : BaseFragment() {
 
                 ViewCompat.setElevation(binding.containerVideoFrame.container1.root, -1f)
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
-                binding.containerVideoFrame.container1.remoteView.getPreview().setZOrderOnTop(false)
-                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
+                binding.containerVideoFrame.container1.remoteView.preview.setZOrderOnTop(false)
+                binding.containerVideoFrame.container2.remoteView.preview.setZOrderOnTop(false)
 
             } else if (it.size == 3) {
+
                 binding.containerVideoFrame.container1.root.show()
                 binding.containerVideoFrame.centerPoint.show()
                 binding.containerVideoFrame.container2.root.show()
@@ -342,9 +361,8 @@ class CallFragment : BaseFragment() {
                 params2.endToEnd = binding.containerVideoFrame.containerParent.id
                 binding.containerVideoFrame.container2.root.layoutParams = params2
                 binding.containerVideoFrame.container2.root.requestLayout()
-
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
-                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
+                binding.containerVideoFrame.container2.remoteView.preview.setZOrderOnTop(false)
 
             } else if (it.size == 4) {
 
@@ -365,15 +383,15 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container2.root.layoutParams = params2
                 binding.containerVideoFrame.container2.root.requestLayout()
                 ViewCompat.setElevation(binding.containerVideoFrame.container2.root, -1f)
-                binding.containerVideoFrame.container2.remoteView.getPreview().setZOrderOnTop(false)
+                binding.containerVideoFrame.container2.remoteView.preview.setZOrderOnTop(false)
 
             }
         }
         Log.e("user", "user-list size " + listUser?.size)
 
         ViewCompat.setElevation(binding.localView, 11f)
-        binding.localView.getPreview().setZOrderMediaOverlay(true)
-        binding.localView.getPreview().setZOrderOnTop(true)
+        binding.localView.preview.setZOrderMediaOverlay(true)
+        binding.localView.preview.setZOrderOnTop(true)
     }
 
     /**
@@ -460,6 +478,7 @@ class CallFragment : BaseFragment() {
                 val view = userMap.get(refId)
 
                 if (view == null) {
+
                     val container = getContainerParticipantView()
                     container.root.show()
                     userMap.put(refId, container)
@@ -519,10 +538,10 @@ class CallFragment : BaseFragment() {
 
             try {
                 stream.addSink(binding.localView.setView())
-                binding.localView.getPreview().setMirror(true)
+                binding.localView.preview.setMirror(true)
                 ViewCompat.setElevation(binding.localView, 11f)
-                binding.localView.getPreview().setZOrderMediaOverlay(true)
-                binding.localView.getPreview().setZOrderOnTop(true)
+                binding.localView.preview.setZOrderMediaOverlay(true)
+                binding.localView.preview.setZOrderOnTop(true)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -546,7 +565,6 @@ class CallFragment : BaseFragment() {
         }
     }
 
-
     override fun onCallMissed() {
         activity?.finish()
     }
@@ -556,18 +574,18 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onParticipantLeftCall(refId: String?) {
-            refId?.let {
-                val view = userMap.get(refId)
-                view?.let {
-                    val participant = listUser.find { it.refId == refId }
-                    participant?.let {
+        refId?.let {
+            val view = userMap.get(refId)
+            view?.let {
+                val participant = listUser.find { it.refId == refId }
+                participant?.let {
                     listUser.remove(participant) }
-                    view.remoteView.hide()
-                    view.imgCallOff.show()
-                    view.groupAudioCall.show()
-                    userMap.remove(refId)
-                }
+                view.remoteView.hide()
+                view.imgCallOff.show()
+                view.groupAudioCall.show()
+                userMap.remove(refId)
             }
+        }
     }
 
     override fun onDestroyView() {
@@ -664,5 +682,12 @@ class CallFragment : BaseFragment() {
             onCallEnd()
         }
     }
+
+    fun getCallTitle(customObject: String): String? {
+        val name = Gson().fromJson(customObject, CallNameModel::class.java)
+        return name.groupName
+    }
+
+
 
 }

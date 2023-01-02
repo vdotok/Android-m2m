@@ -18,6 +18,7 @@ import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.many2many.utils.ViewUtils.setStatusBarGradient
 import com.vdotok.streaming.enums.PermissionType
 import com.vdotok.streaming.models.CallParams
+import com.vdotok.streaming.models.SessionStateInfo
 
 /**
  * Created By: VdoTok
@@ -86,21 +87,24 @@ class DashBoardActivity: BaseActivity() {
 
     override fun incomingCall(callParams: CallParams) {
         runOnUiThread {
-                (application as VdoTok).mediaTypeCheck = callParams.mediaType
-                sessionId?.let {
-                    if (callClient.getActiveSessionClient(it) != null) {
-                        callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
-                    } else {
-                        mListener?.onIncomingCall(callParams)
-                    }
-                } ?: kotlin.run {
+            (application as VdoTok).mediaTypeCheck = callParams.mediaType
+            sessionId?.let {
+                if (callClient.getActiveSessionClient(it) != null) {
+                    callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+                } else {
                     mListener?.onIncomingCall(callParams)
                 }
+            } ?: kotlin.run {
+                mListener?.onIncomingCall(callParams)
+            }
         }
-
     }
 
     override fun permissionError(permissionErrorList: ArrayList<PermissionType>) {
+//        TODO("Not yet implemented")
+    }
+
+    override fun sessionReconnecting(sessionID: String) {
 //        TODO("Not yet implemented")
     }
 

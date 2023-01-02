@@ -45,6 +45,7 @@ import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.enums.*
 import com.vdotok.streaming.models.CallParams
 import kotlinx.coroutines.*
+import okhttp3.MediaType
 import org.webrtc.VideoTrack
 import retrofit2.HttpException
 import java.util.*

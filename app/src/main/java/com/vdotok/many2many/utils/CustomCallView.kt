@@ -15,6 +15,7 @@ import com.vdotok.many2many.R
 import com.vdotok.streaming.views.ProxyVideoSink
 import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
+import javax.microedition.khronos.egl.EGLContext
 
 class CustomCallView(context: Context, attrs: AttributeSet) :
     FrameLayout(context, attrs) {
@@ -25,7 +26,6 @@ class CustomCallView(context: Context, attrs: AttributeSet) :
     var preview: SurfaceViewRenderer
     private var borderView: View
     var proxyVideoSink: ProxyVideoSink
-    private val rootEglBase = EglBase.create()
     var refID: String? = null
     var sessionID: String? = null
 
@@ -97,8 +97,8 @@ class CustomCallView(context: Context, attrs: AttributeSet) :
             Log.e("Mango", "release: called release for the view!")
             preview.release()
             preview.clearImage()
-            rootEglBase.releaseSurface()
-            rootEglBase.release()
+//            rootEglBase?.releaseSurface()
+//            rootEglBase?.release()
         } catch (ex: Exception) {
             ex.printStackTrace()
         }

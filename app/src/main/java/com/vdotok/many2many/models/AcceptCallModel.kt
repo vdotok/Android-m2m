@@ -1,9 +1,7 @@
 package com.vdotok.many2many.models
 
 import android.os.Parcelable
-import com.vdotok.streaming.enums.CallType
-import com.vdotok.streaming.enums.MediaType
-import com.vdotok.streaming.enums.SessionType
+import com.vdotok.streaming.enums.*
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize

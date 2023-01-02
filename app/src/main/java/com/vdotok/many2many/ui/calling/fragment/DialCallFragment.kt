@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -83,7 +84,7 @@ class DialCallFragment : BaseFragment() {
                 test++
                 if (test >= 2) {
                     activity?.runOnUiThread {
-                      rejectCall()
+                        rejectCall()
                     }
                     timerFro30sec?.cancel()
                 }
@@ -139,6 +140,7 @@ class DialCallFragment : BaseFragment() {
      * Function to set data when outgoing call dial is implemented and setonClickListener
      * */
     private fun setDataForDialCall() {
+
         userName.set(groupModel?.groupTitle)
         binding.imgCallAccept.hide()
         binding.imgmic.show()
@@ -150,6 +152,7 @@ class DialCallFragment : BaseFragment() {
         }
 
     }
+
 
     /**
      * Function to set data when incoming call dial is implemented and setonClickListener
@@ -179,7 +182,7 @@ class DialCallFragment : BaseFragment() {
         }
     }
 
-    private fun rejectCall() {
+    fun rejectCall() {
         timerFro30sec?.cancel()
         if (isIncomingCall) {
             prefs.loginInfo?.let {
@@ -188,7 +191,7 @@ class DialCallFragment : BaseFragment() {
                     it1.sessionUUID)
                 }
             }
-            activity?.finish()
+            getActivity()?.finish()
         } else {
             (activity as CallActivity).endCall()
         }
@@ -199,7 +202,10 @@ class DialCallFragment : BaseFragment() {
     private fun acceptIncomingCall() {
 
         callParams?.let {
-            (activity as CallActivity).acceptIncomingCall(it)
+
+            (activity as CallActivity).acceptIncomingCall(
+                it
+            )
             openCallFragment()
         }
         timerFro30sec?.cancel()
@@ -251,7 +257,10 @@ class DialCallFragment : BaseFragment() {
                 bundle.putParcelable(GroupModel.TAG, groupModel)
                 bundle.putBoolean(IS_VIDEO_CALL, isVideoCall)
                 bundle.putBoolean(IS_IN_COMING_CALL, false)
-                Navigation.findNavController(binding.root).navigate(R.id.action_open_call_fragment, bundle)
+                Navigation.findNavController(binding.root).navigate(
+                    R.id.action_open_call_fragment,
+                    bundle
+                )
             }
         }
     }
@@ -283,12 +292,13 @@ class DialCallFragment : BaseFragment() {
        closeFragmentWithMessage("Call Missed!")
     }
 
-    override fun onInsuficientBalance() {
-        closeFragmentWithMessage("Insufficient Balance!")
-    }
-
     override fun onCallEnd() {
         activity?.finish()
+    }
+
+
+    override fun onInsuficientBalance() {
+        closeFragmentWithMessage("Insufficient Balance!")
     }
 
     private fun closeFragmentWithMessage(message: String?) {
