@@ -197,6 +197,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 }
             }
             EnumConnectionStatus.CLOSED -> {
+                mListener?.onConnectionFail()
                 runOnUiThread {
                     Toast.makeText(this, "Connection Closed!", Toast.LENGTH_SHORT).show()
                 }
@@ -308,9 +309,10 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
     fun addInternetConnectionObserver() {
         mLiveDataNetwork = NetworkStatusLiveData(this.application)
 
-        mLiveDataNetwork.observe(this, { isInternetConnected ->
+        mLiveDataNetwork.observe(this) { isInternetConnected ->
             when {
                 isInternetConnected == true && isInternetConnectionRestored && !isResumeState -> {
+                    mListener?.onConnectionSuccess()
                     Log.e("Internet", "internet connection restored!")
                     performSocketReconnection()
                 }
@@ -318,12 +320,13 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     isInternetConnectionRestored = true
                     reConnectStatus = true
                     isResumeState = false
+                    mListener?.onConnectionFail()
                     Log.e("Internet", "internet connection lost!")
                 }
                 else -> {
                 }
             }
-        })
+        }
     }
 
     private fun performSocketReconnection() {
