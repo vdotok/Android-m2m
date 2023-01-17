@@ -20,7 +20,8 @@ class VdoTok : Application() {
     private lateinit var prefs : Prefs
     var mediaTypeCheck: MediaType? = null
     var camView :Boolean = true
-    val rootEglBase = EglBase.create()
+    private val rootEglBase: EglBase = EglBase.create()
+    val rootEglBaseContext: EglBase.Context = rootEglBase.eglBaseContext
     private var lifecycleEventObserver = LifecycleEventObserver { _, event ->
        when (event) {
           Lifecycle.Event.ON_RESUME -> {

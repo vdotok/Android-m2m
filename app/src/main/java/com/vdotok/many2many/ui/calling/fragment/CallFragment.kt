@@ -285,11 +285,11 @@ class CallFragment : BaseFragment() {
     }
 
     private fun initiateView() {
-        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.localView.initiateCallView(it) }
-        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container1.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container2.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container3.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBase?.eglBaseContext?.let { binding.containerVideoFrame.container4.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let { binding.localView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container1.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container2.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container3.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container4.remoteView.initiateCallView(it) }
     }
 
     private fun updateCallUIViews(listUser: List<Participants>?) {
@@ -570,6 +570,9 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onCallEnd() {
+        if (isVideoCall) {
+            releaseCallViews()
+        }
         activity?.finish()
     }
 
