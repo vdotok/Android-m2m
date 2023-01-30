@@ -4,18 +4,28 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.MutableLiveData
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import com.vdotok.many2many.R
 import com.vdotok.many2many.VdoTok
 import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.databinding.ActivityDashBoardBinding
 import com.vdotok.many2many.prefs.Prefs
+import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.many2many.utils.ViewUtils.setStatusBarGradient
+import com.vdotok.streaming.commands.CallInfoResponse
+import com.vdotok.streaming.enums.CallStatus
 import com.vdotok.streaming.enums.PermissionType
 import com.vdotok.streaming.models.CallParams
 import com.vdotok.streaming.models.SessionStateInfo
@@ -29,6 +39,20 @@ import com.vdotok.streaming.models.SessionStateInfo
 class DashBoardActivity: BaseActivity() {
 
     private lateinit var binding: ActivityDashBoardBinding
+
+    private lateinit var navController: NavController
+    var sessionIdList = arrayListOf<String>()
+    private var audioManager: AudioManager? = null
+    var dialCallOpen: Boolean = false
+    var isCallInitiator: Boolean = false
+
+    val mLiveDataEndCall: MutableLiveData<Boolean> by lazy {
+        MutableLiveData<Boolean>()
+    }
+    val mLiveDataLeftParticipant: MutableLiveData<String> by lazy {
+        MutableLiveData<String>()
+    }
+
     override fun getRootView() = binding.root
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +64,21 @@ class DashBoardActivity: BaseActivity() {
 
         addInternetConnectionObserver()
         askForPermissions()
+
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.chat_nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+
+        mLiveDataEndCall.observe(this) {
+            if (it) {
+                mListener?.onCallEnd()
+            }
+        }
+        mLiveDataLeftParticipant.observe(this) {
+            if (!TextUtils.isEmpty(it)) {
+                mListener?.onParticipantLeftCall(it)
+            }
+        }
     }
 
     /**
@@ -74,6 +113,16 @@ class DashBoardActivity: BaseActivity() {
         }
     }
 
+
+    private val listener =
+        NavController.OnDestinationChangedListener { controller, destination, arguments ->
+            when (destination.id) {
+                R.id.dialFragment -> {
+                    dialCallOpen = true
+                }
+            }
+        }
+
     override fun onError(cause: String) {
         Log.e("OnError:", cause)
     }
@@ -87,16 +136,18 @@ class DashBoardActivity: BaseActivity() {
 
     override fun incomingCall(callParams: CallParams) {
         runOnUiThread {
-            (application as VdoTok).mediaTypeCheck = callParams.mediaType
-            sessionId?.let {
-                if (callClient.getActiveSessionClient(it) != null) {
-                    callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
-                } else {
-                    mListener?.onIncomingCall(callParams)
+            Handler(Looper.getMainLooper()).postDelayed({
+                (application as VdoTok).mediaTypeCheck = callParams.mediaType
+                sessionId = callParams.sessionUUID
+                sessionIdList.add(callParams.sessionUUID)
+                sessionId?.let {
+                    if (callClient.getActiveSessionClient(it) != null || dialCallOpen) {
+                        callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+                    } else {
+                        mListener?.onIncomingCall(callParams)
+                    }
                 }
-            } ?: kotlin.run {
-                mListener?.onIncomingCall(callParams)
-            }
+            },1000)
         }
     }
 
@@ -109,8 +160,139 @@ class DashBoardActivity: BaseActivity() {
     }
 
     override fun onResume() {
+        navController.addOnDestinationChangedListener(listener)
         askForPermissions()
         super.onResume()
+    }
+
+    override fun onDestroy() {
+        navController.removeOnDestinationChangedListener(listener)
+        super.onDestroy()
+    }
+
+    override fun callStatus(callInfoResponse: CallInfoResponse) {
+        runOnUiThread {
+            when (callInfoResponse.callStatus) {
+                CallStatus.CALL_CONNECTED -> {
+                    mListener?.onStartCalling()
+                }
+                CallStatus.SERVICE_SUSPENDED,
+                CallStatus.OUTGOING_CALL_ENDED,
+                CallStatus.NO_SESSION_EXISTS -> {
+                    callInfoResponse.callParams?.sessionUUID?.let {
+                        if (callClient.getActiveSessionClient(it) == null) {
+                            turnMicOff()
+                            turnSpeakerOff()
+                            mLiveDataEndCall.postValue(true)
+                        }
+                    }
+                }
+                CallStatus.CALL_REJECTED,
+                CallStatus.PARTICIPANT_LEFT_CALL  -> {
+                    callInfoResponse.callParams?.refId?.let {
+                        if (it.isNotEmpty())
+                            mListener?.onCallRejected(it)
+                        else {
+                            callInfoResponse.callParams?.toRefIds?.get(0)?.let {
+                                mListener?.onCallRejected(it)
+                            }
+                        }
+                    }
+                }
+                CallStatus.CALL_MISSED -> {
+                    sessionId?.let {
+                        if (callClient.getActiveSessionClient(it) == null)
+                            mLiveDataEndCall.postValue(true)
+                    } ?: kotlin.run {
+                        mListener?.onCallMissed()
+                        mLiveDataEndCall.postValue(true)
+                    }
+//                    mListener?.onCallMissed()
+                }
+                CallStatus.NO_ANSWER_FROM_TARGET -> {
+                    mListener?.noAnsFromTarget()
+                }
+                CallStatus.TARGET_IS_BUSY,
+                CallStatus.SESSION_BUSY -> {
+
+                    if (sessionIdList.contains(callInfoResponse.callParams?.sessionUUID)) {
+                        sessionIdList.remove(callInfoResponse.callParams?.sessionUUID)
+                    }
+                    if (sessionIdList.isEmpty() && dialCallOpen) {
+                        if (isCallInitiator)
+                            mListener?.onCallerAlreadyBusy()
+                        else
+                            mLiveDataEndCall.postValue(true)
+                    }
+                }
+                CallStatus.SESSION_TIMEOUT -> {
+                    mListener?.onCallTimeout()
+                }
+                CallStatus.INSUFFICIENT_BALANCE ->{
+                    mListener?.onInsuficientBalance()
+                }
+                else -> {
+                }
+            }
+        }
+    }
+
+    fun endCall() {
+        turnMicOff()
+        turnSpeakerOff()
+        localStream = null
+        sessionId?.let {
+            callClient.endCallSession(arrayListOf(it))
+        }
+    }
+
+    fun turnMicOff() {
+        if (!callClient.isAudioEnabled(sessionId.toString())){
+            callClient.muteUnMuteMic(prefs.loginInfo?.refId.toString(),sessionId.toString())
+        }
+    }
+
+    fun turnSpeakerOff() {
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager?.let {
+            it.isSpeakerphoneOn = false
+        }
+    }
+
+    fun pauseVideo() {
+        sessionId?.let {
+            callClient.pauseVideo(
+                sessionKey = sessionId.toString(),
+                refId = prefs.loginInfo?.refId!!
+            )
+        }
+    }
+
+    fun resumeVideo() {
+        sessionId?.let {
+            callClient.resumeVideo(
+                sessionKey = sessionId.toString(),
+                refId = prefs.loginInfo?.refId!!
+            )
+        }
+    }
+
+    /**
+     * Function to mute call
+     * */
+    fun muteUnMuteCall(isVideoCall: Boolean) {
+        sessionId?.let {
+            callClient.muteUnMuteMic(
+                sessionKey = sessionId.toString(),
+            )
+        }
+    }
+
+    /**
+     * Function to switch Camera
+     * */
+    fun switchCamera() {
+        sessionId?.let { callClient.switchCamera(it) }
     }
 
     fun acceptIncomingCall(
@@ -125,8 +307,10 @@ class DashBoardActivity: BaseActivity() {
     }
 
     fun diaMany2ManyCall(callParams: CallParams) {
+        isCallInitiator = true
         (application as VdoTok).mediaTypeCheck = callParams.mediaType
         sessionId = callClient.dialMany2ManyCall(callParams)
+        sessionId?.let { sessionIdList.add(it) }
     }
 
     fun logout() {

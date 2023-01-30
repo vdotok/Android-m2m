@@ -179,8 +179,14 @@ class CallActivity : BaseActivity() {
 //        const val IN_COMING_CALL = "incoming_call"
         const val Session_ID = "session_id"
 
-        fun createIntent(context: Context, group: GroupModel?, isVideo: Boolean, isIncoming: Boolean, model: AcceptCallModel?,
-                         callParams: CallParams?, sessionId: String?, groupList: ArrayList<GroupModel>?= null)  = Intent(
+        fun createIntent(context: Context,
+                         group: GroupModel?,
+                         isVideo: Boolean,
+                         isIncoming: Boolean,
+                         model: AcceptCallModel?,
+                         callParams: CallParams?,
+                         sessionId: String?,
+                         groupList: ArrayList<GroupModel>?= null)  = Intent(
             context,
             CallActivity::class.java
         ).apply {

@@ -14,6 +14,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.databinding.ObservableField
+import androidx.navigation.Navigation
 import com.google.gson.Gson
 import com.vdotok.many2many.R
 import com.vdotok.many2many.VdoTok
@@ -27,6 +28,7 @@ import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
+import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.*
 import com.vdotok.many2many.utils.TimeUtils.getTimeFromSeconds
 import com.vdotok.network.models.GroupModel
@@ -134,7 +136,7 @@ class CallFragment : BaseFragment() {
             if (isVideoCall) {
                 releaseCallViews()
             }
-            (activity as CallActivity).endCall()
+            (activity as DashBoardActivity).endCall()
         }
 
         binding.imgMute.setOnClickListener {
@@ -145,17 +147,17 @@ class CallFragment : BaseFragment() {
             } else {
                 binding.imgMute.setImageResource(R.drawable.ic_unmute_mic)
             }
-            (activity as CallActivity).muteUnMuteCall(isVideoCall)
+            (activity as DashBoardActivity).muteUnMuteCall(isVideoCall)
         }
 
         binding.ivSpeaker.setOnClickListener {
-            if (callClient.isSpeakerEnabled()) {
-                callClient.setSpeakerEnable(false)
+            isSpeakerOff = isSpeakerOff.not()
+            if (isSpeakerOff) {
                 binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_off)
             } else {
-                callClient.setSpeakerEnable(true)
                 binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_on)
             }
+            callClient.toggleSpeakerOnOff()
         }
 
         val callback = object : OnBackPressedCallback(true // default to enabled
@@ -172,7 +174,7 @@ class CallFragment : BaseFragment() {
                 binding.localView.preview.setMirror(true)
             }
             isCamSwitch = isCamSwitch.not()
-            (activity as CallActivity).switchCamera()
+            (activity as DashBoardActivity).switchCamera()
         }
 
         binding.imgCamera.setOnClickListener {
@@ -183,13 +185,13 @@ class CallFragment : BaseFragment() {
                 if (isVideoCall) {
                     binding.localView.hide()
                     binding.localView.showHideAvatar(true)
-                    (activity as CallActivity).pauseVideo()
+                    (activity as DashBoardActivity).pauseVideo()
                     (activity?.application as VdoTok).camView = false
                     binding.imgCamera.setImageResource(R.drawable.ic_video_off)
                 } else {
                     binding.localView.show()
                     binding.localView.showHideAvatar(false)
-                    (activity as CallActivity).resumeVideo()
+                    (activity as DashBoardActivity).resumeVideo()
                     binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
                     (activity?.application as VdoTok).camView = true
 
@@ -244,7 +246,6 @@ class CallFragment : BaseFragment() {
         }
 
         if (!videoCall) {
-            callClient.setSpeakerEnable(false)
             binding.localView.hide()
             isCallTypeAudio = true
             binding.containerVideoFrame.container1.remoteView.hide()
@@ -260,9 +261,9 @@ class CallFragment : BaseFragment() {
             binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_off)
             binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             binding.ivCamSwitch.hide()
+            callClient.setSpeakerEnable(false)
 
         } else {
-            callClient.setSpeakerEnable(true)
             isCallTypeAudio = false
             initiateView()
             binding.localView.show()
@@ -278,7 +279,7 @@ class CallFragment : BaseFragment() {
 
             binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_on)
             binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
-
+            callClient.setSpeakerEnable(true)
         }
 
         updateCallUIViews(listUser)
@@ -293,11 +294,6 @@ class CallFragment : BaseFragment() {
     }
 
     private fun updateCallUIViews(listUser: List<Participants>?) {
-        if (isCallTypeAudio){
-            binding.localView.hide()
-        }else{
-            binding.localView.show()
-        }
 
         listUser?.let {
             if (it.size == 1) {
@@ -566,14 +562,22 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onCallMissed() {
-        activity?.finish()
+        try {
+            listUser.clear()
+            (this.activity as DashBoardActivity).sessionId = null
+            Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
+        } catch (e: Exception) {}
     }
 
     override fun onCallEnd() {
         if (isVideoCall) {
             releaseCallViews()
         }
-        activity?.finish()
+        try {
+            listUser.clear()
+            (this.activity as DashBoardActivity).sessionId = null
+            Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
+        } catch (e: Exception) {}
     }
 
     override fun onParticipantLeftCall(refId: String?) {
@@ -592,12 +596,12 @@ class CallFragment : BaseFragment() {
     }
 
     override fun onDestroyView() {
-        (activity as CallActivity).endCall()
+        (activity as DashBoardActivity).endCall()
         super.onDestroyView()
     }
 
     override fun onCallRejected(reason: String) {
-        (activity as CallActivity).mLiveDataLeftParticipant.postValue(reason)
+        (activity as DashBoardActivity).mLiveDataLeftParticipant.postValue(reason)
     }
 
     @SuppressLint("ClickableViewAccessibility")

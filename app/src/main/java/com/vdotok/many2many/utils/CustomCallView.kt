@@ -94,11 +94,8 @@ class CustomCallView(context: Context, attrs: AttributeSet) :
 
     fun release() {
         try {
-            Log.e("Mango", "release: called release for the view!")
             preview.release()
             preview.clearImage()
-//            rootEglBase?.releaseSurface()
-//            rootEglBase?.release()
         } catch (ex: Exception) {
             ex.printStackTrace()
         }

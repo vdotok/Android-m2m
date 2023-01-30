@@ -47,6 +47,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
         var mListener: FragmentCallback? = null
         var localStream: VideoTrack? = null
         var remoteStream: VideoTrack? = null
+        const val Session_ID = "session_id"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +77,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
     fun connectClient() {
         prefs.loginInfo?.mediaServer?.let {
-            if (callClient.isConnected() == null || callClient.isConnected() == false)
+            if (!callClient.isConnected())
                 callClient.connect(getMediaServerAddress(it), it.endPoint)
         }
     }
@@ -108,59 +109,6 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
 
     override fun callStatus(callInfoResponse: CallInfoResponse) {
-        runOnUiThread {
-            when (callInfoResponse.callStatus) {
-                CallStatus.CALL_CONNECTED -> {
-                    mListener?.onStartCalling()
-                }
-                CallStatus.SERVICE_SUSPENDED,
-                CallStatus.OUTGOING_CALL_ENDED,
-                CallStatus.NO_SESSION_EXISTS -> {
-                        sessionId?.let {
-                            if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity) {
-                                turnMicOff()
-                                turnSpeakerOff()
-                                mLiveDataEndCall.postValue(true)
-                            }
-                        }
-                    }
-                CallStatus.CALL_REJECTED,
-                CallStatus.PARTICIPANT_LEFT_CALL  -> {
-                    callInfoResponse.callParams?.refId?.let {
-                        if (it.isNotEmpty())
-                            mListener?.onCallRejected(it)
-                        else {
-                            callInfoResponse.callParams?.toRefIds?.get(0)?.let {
-                                mListener?.onCallRejected(it)
-                            }
-                        }
-                    }
-                }
-                CallStatus.CALL_MISSED -> {
-                    sessionId?.let {
-                        if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity)
-                            mLiveDataEndCall.postValue(true)
-                    } ?: kotlin.run {
-                        mListener?.onCallMissed()
-                    }
-//                    mListener?.onCallMissed()
-                }
-                CallStatus.NO_ANSWER_FROM_TARGET -> {
-                    mListener?.noAnsFromTarget()
-                }
-                CallStatus.TARGET_IS_BUSY -> {
-                    mListener?.onCallerAlreadyBusy()
-                }
-                CallStatus.SESSION_TIMEOUT -> {
-                    mListener?.onCallTimeout()
-                }
-                CallStatus.INSUFFICIENT_BALANCE ->{
-                    mListener?.onInsuficientBalance()
-                }
-                else -> {
-                }
-            }
-        }
     }
 
     override fun connectionStatus(enumConnectionStatus: EnumConnectionStatus) {

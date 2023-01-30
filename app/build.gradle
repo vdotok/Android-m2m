@@ -19,14 +19,6 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        releaseConfig {
-            storeFile file("VdoTokMany2Many-keystore")
-            storePassword("vdotok_m2m@demo")
-            keyAlias "vdotok_alias"
-            keyPassword "vdotok_m2m@demo"
-        }
-    }
     buildTypes {
         debug {
             applicationIdSuffix '.debug'
@@ -40,7 +32,6 @@ android {
         }
     }
     packagingOptions {
-        exclude 'VdoTokMany2Many-keystore'
         exclude 'META-INF/DEPENDENCIES'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'

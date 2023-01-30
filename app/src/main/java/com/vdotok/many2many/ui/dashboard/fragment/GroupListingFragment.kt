@@ -28,6 +28,7 @@ import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.extensions.toggleVisibility
 import com.vdotok.many2many.feature.account.viewmodel.GroupViewModel
+import com.vdotok.many2many.models.AcceptCallModel
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.network.HttpResponseCodes
 import com.vdotok.many2many.prefs.Prefs
@@ -359,20 +360,12 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     override fun onIncomingCall(model: CallParams) {
         activity?.runOnUiThread {
             val bundle = Bundle()
+            bundle.putParcelable(AcceptCallModel.TAG, model)
+            bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, true)
             bundle.putParcelableArrayList(DialCallFragment.GROUP_LIST, groupList)
             bundle.putString(DialCallFragment.USER_NAME, getUsername(model.refId))
-//            bundle.putParcelable(AcceptCallModel.TAG, model)
-            bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, true)
             bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, model.mediaType == com.vdotok.streaming.enums.MediaType.VIDEO)
-//            Navigation.findNavController(binding.root).navigate(
-//                R.id.action_open_dial_fragment,
-//                bundle
-//            )
-
-            startActivity(CallActivity.createIntent(requireContext(),
-                null, false, false, null, model, (requireActivity() as BaseActivity).sessionId, groupList))
-
-
+            Navigation.findNavController(binding.root).navigate(R.id.action_open_dial_fragment, bundle)
         }
     }
     /**
@@ -399,10 +392,22 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
      * @param toPeer toPeer object is the group data from server
      * @param isVideo isVideo object is to check if its an audio or video call
      * */
-    private fun openCallFragment(toPeer: GroupModel, isVideo: Boolean) {
-        startActivity(CallActivity.createIntent(requireContext(),
-            toPeer, isVideo, false, null, null,
-            (requireActivity() as BaseActivity).sessionId))
+    private fun openCallFragment(groupModel: GroupModel, isVideo: Boolean) {
+//        startActivity(CallActivity.createIntent(requireContext(),
+//            toPeer,
+//            isVideo,
+//            false,
+//            null,
+//            null,
+//            (requireActivity() as BaseActivity).sessionId))
+
+        val bundle = Bundle()
+        bundle.putParcelable(GroupModel.TAG, groupModel)
+        bundle.putBoolean(DialCallFragment.IS_VIDEO_CALL, isVideo)
+        bundle.putBoolean(DialCallFragment.IS_IN_COMING_CALL, false)
+        bundle.putParcelable(ApplicationConstants.CALL_PARAMS, null)
+        bundle.putString(BaseActivity.Session_ID, (requireActivity() as BaseActivity).sessionId)
+        Navigation.findNavController(binding.root).navigate(R.id.action_open_dial_fragment, bundle)
     }
 
     /**
