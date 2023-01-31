@@ -4,29 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/groupFragment">
 
-        <fragment
-            android:id="@+id/groupFragment"
-            android:name="com.vdotok.many2many.ui.dashboard.fragment.GroupListingFragment"
-            android:label="groupFragment"
-            tools:layout="@layout/fragment_group_listing">
-            <action
-                android:id="@+id/action_open_userList"
-                app:destination="@id/userListFragment"
-                app:enterAnim="@anim/slide_item_from_right"
-                app:exitAnim="@anim/slide_item_to_left"
-                app:launchSingleTop="true"
-                app:popUpToInclusive="true" />
+    <fragment
+        android:id="@+id/groupFragment"
+        android:name="com.vdotok.many2many.ui.dashboard.fragment.GroupListingFragment"
+        android:label="groupFragment"
+        tools:layout="@layout/fragment_group_listing">
+        <action
+            android:id="@+id/action_open_userList"
+            app:destination="@id/userListFragment"
+            app:enterAnim="@anim/slide_item_from_right"
+            app:exitAnim="@anim/slide_item_to_left"
+            app:launchSingleTop="true"
+            app:popUpToInclusive="true" />
 
-            <action
-                android:id="@+id/action_open_dial_fragment"
-                app:destination="@id/dialFragment"
-                app:enterAnim="@anim/slide_item_from_right"
-                app:exitAnim="@anim/slide_item_to_left"
-                app:popUpTo="@id/groupFragment"
-                app:launchSingleTop="true"
-                app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_open_dial_fragment"
+            app:destination="@id/dialFragment"
+            app:enterAnim="@anim/slide_item_from_right"
+            app:exitAnim="@anim/slide_item_to_left"
+            app:popUpTo="@id/groupFragment"
+            app:launchSingleTop="true"
+            app:popUpToInclusive="true" />
 
-        </fragment>
+    </fragment>
 
     <fragment
         android:id="@+id/userListFragment"
@@ -65,7 +65,7 @@
             app:destination="@id/groupFragment"
             app:enterAnim="@anim/slide_item_from_right"
             app:exitAnim="@anim/slide_item_to_left"
-            app:popUpTo="@id/userListFragment"
+            app:popUpTo="@id/dialFragment"
             app:popUpToInclusive="true"
             app:launchSingleTop="true" />
 
@@ -82,7 +82,7 @@
             app:destination="@id/groupFragment"
             app:enterAnim="@anim/slide_item_from_right"
             app:exitAnim="@anim/slide_item_to_left"
-            app:popUpTo="@id/userListFragment"
+            app:popUpTo="@id/voiceFragment"
             app:popUpToInclusive="true"
             app:launchSingleTop="true" />
 
