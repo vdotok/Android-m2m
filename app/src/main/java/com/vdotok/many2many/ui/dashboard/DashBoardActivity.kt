@@ -244,6 +244,8 @@ class DashBoardActivity: BaseActivity() {
         sessionId?.let {
             callClient.endCallSession(arrayListOf(it))
         }
+        if (!callClient.isConnected())
+            mListener?.onCallEnd()
     }
 
     fun turnMicOff() {
