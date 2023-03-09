@@ -138,13 +138,13 @@ class DashBoardActivity: BaseActivity() {
         runOnUiThread {
             Handler(Looper.getMainLooper()).postDelayed({
                 (application as VdoTok).mediaTypeCheck = callParams.mediaType
-                sessionId = callParams.sessionUUID
                 sessionIdList.add(callParams.sessionUUID)
-                sessionId?.let {
+                callParams.sessionUUID.let {
                     if (callClient.getActiveSessionClient(it) != null || dialCallOpen) {
                         callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
                     } else {
                         mListener?.onIncomingCall(callParams)
+                        sessionId = callParams.sessionUUID
                     }
                 }
             },1000)
