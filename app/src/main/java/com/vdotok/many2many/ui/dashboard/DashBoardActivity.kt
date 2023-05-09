@@ -138,13 +138,13 @@ class DashBoardActivity: BaseActivity() {
         runOnUiThread {
             Handler(Looper.getMainLooper()).postDelayed({
                 (application as VdoTok).mediaTypeCheck = callParams.mediaType
-                sessionIdList.add(callParams.sessionUUID)
-                callParams.sessionUUID.let {
+                sessionIdList.add(callParams.sessionUuid)
+                callParams.sessionUuid.let {
                     if (callClient.getActiveSessionClient(it) != null || dialCallOpen) {
-                        callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+                        callClient.sessionBusy(callParams.refId, callParams.sessionUuid)
                     } else {
                         mListener?.onIncomingCall(callParams)
-                        sessionId = callParams.sessionUUID
+                        sessionId = callParams.sessionUuid
                     }
                 }
             },1000)
@@ -179,7 +179,7 @@ class DashBoardActivity: BaseActivity() {
                 CallStatus.SERVICE_SUSPENDED,
                 CallStatus.OUTGOING_CALL_ENDED,
                 CallStatus.NO_SESSION_EXISTS -> {
-                    callInfoResponse.callParams?.sessionUUID?.let {
+                    callInfoResponse.callParams?.sessionUuid?.let {
                         if (callClient.getActiveSessionClient(it) == null) {
                             turnMicOff()
                             turnSpeakerOff()
@@ -215,8 +215,8 @@ class DashBoardActivity: BaseActivity() {
                 CallStatus.TARGET_IS_BUSY,
                 CallStatus.SESSION_BUSY -> {
 
-                    if (sessionIdList.contains(callInfoResponse.callParams?.sessionUUID)) {
-                        sessionIdList.remove(callInfoResponse.callParams?.sessionUUID)
+                    if (sessionIdList.contains(callInfoResponse.callParams?.sessionUuid)) {
+                        sessionIdList.remove(callInfoResponse.callParams?.sessionUuid)
                     }
                     if (sessionIdList.isEmpty() && dialCallOpen) {
                         if (isCallInitiator)

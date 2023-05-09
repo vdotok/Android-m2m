@@ -108,7 +108,7 @@ class CallActivity : BaseActivity() {
     override fun incomingCall(callParams: CallParams) {
         sessionId?.let {
             if (callClient.getActiveSessionClient(it) != null) {
-                callClient.sessionBusy(callParams.refId, callParams.sessionUUID)
+                callClient.sessionBusy(callParams.refId, callParams.sessionUuid)
             } else {
                 mListener?.onIncomingCall(callParams)
             }

@@ -178,7 +178,7 @@ class DialCallFragment : BaseFragment() {
             prefs.loginInfo?.let {
                 callParams?.let { it1 -> callClient.rejectIncomingCall(
                     it.refId!!,
-                    it1.sessionUUID)
+                    it1.sessionUuid)
                 }
             }
             (activity as DashBoardActivity).dialCallOpen = false
