@@ -2,7 +2,6 @@ package com.vdotok.many2many.ui.dashboard.fragment
 
 import android.app.AppOpsManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -33,7 +32,6 @@ import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.network.HttpResponseCodes
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.account.AccountsActivity
-import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.ui.calling.fragment.DialCallFragment
 import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.ApplicationConstants
@@ -46,7 +44,6 @@ import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.enums.*
 import com.vdotok.streaming.models.CallParams
 import kotlinx.coroutines.*
-import okhttp3.MediaType
 import org.webrtc.VideoTrack
 import retrofit2.HttpException
 import java.util.*
@@ -58,7 +55,7 @@ import java.util.*
  *
  * This class displays the list of groups that a user is connected to
  */
-class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuItemClick {
+class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuItemClick, UpdateGroupNameDialog.UpdateGroupCallbacks {
 
     private lateinit var binding: FragmentGroupListingBinding
     private lateinit var prefs: Prefs
@@ -105,7 +102,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
         binding.customToolbar.imgArrowBack.hide()
 
         binding.customToolbar.imgDone.setOnClickListener {
-          openUserListFragment()
+            openUserListFragment()
         }
 
         binding.btnNewChat.setOnClickListener {
@@ -150,7 +147,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
      * Function to call api for getting all group on server
      * */
     private fun getAllGroups() {
-        viewModelGroup.getAllGroups(this.prefs).observe(viewLifecycleOwner, {
+        viewModelGroup.getAllGroups(this.prefs).observe(viewLifecycleOwner) {
             try {
                 when (it) {
                     is com.vdotok.network.network.Result.Success -> {
@@ -173,7 +170,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
             } catch (e: Throwable) {
                 Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        })
+        }
 
     }
 
@@ -213,7 +210,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     }
 
     override fun onEditClick(groupModel: GroupModel) {
-        activity?.supportFragmentManager.let { UpdateGroupNameDialog(groupModel, this::getAllGroups).show(
+        activity?.supportFragmentManager.let { UpdateGroupNameDialog(groupModel, this).show(
             it!!,
             UpdateGroupNameDialog.UPDATE_GROUP_TAG)
         }
@@ -235,21 +232,19 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     }
 
     override fun onDeleteClick(position: Int) {
-        dialogdeleteGroup(position)
+        dialogDeleteGroup(position)
     }
     /**
      * Function to display Alert dialog box
      * @param groupId groupId object we will be sending to the server to delete group on its basis
      * */
-    private fun dialogdeleteGroup(groupId: Int) {
-        showDeleteGroupAlert(this.activity, object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface?, which: Int) {
-                val model = DeleteGroupModel()
-                model.groupId = groupId
-                deleteGroup(model)
-
-            }
-        })
+    private fun dialogDeleteGroup(groupId: Int) {
+        showDeleteGroupAlert(this.activity
+        ) { dialog, which ->
+            val model = DeleteGroupModel()
+            model.groupId = groupId
+            deleteGroup(model)
+        }
     }
     /**
      * Function to call api for deleting a group from server
@@ -274,6 +269,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
                             binding.root.showSnackBar(it.exception.message)
                         binding.swipeRefreshLay.isRefreshing = false
                     }
+                    else -> {}
                 }
                 binding.progressBar.toggleVisibility()
 
@@ -351,7 +347,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     }
 
     override fun onConnectionFail() {
-      binding.tvLed.setImageResource(R.drawable.led_error)
+        binding.tvLed.setImageResource(R.drawable.led_error)
     }
 
     override fun onParticipantLeftCall(refId: String?) {
@@ -373,16 +369,16 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
      * @param model model object is used to get username from the list of user achieved from server
      * */
     private fun getUsername(refId: String) : String? {
-       groupList.let {
-                it.forEach { name ->
-                    name.participants?.forEach { username->
-                        if (username.refId?.equals(refId) == true) {
-                            user = username.fullname
-                            return user
-                        }
+        groupList.let {
+            it.forEach { name ->
+                name.participants?.forEach { username->
+                    if (username.refId?.equals(refId) == true) {
+                        user = username.fullname
+                        return user
                     }
                 }
             }
+        }
         return user
     }
 
@@ -430,6 +426,14 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
             Process.myUid(), activity?.packageName.toString()
         )
         return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    override fun groupRenameSuccess(groupModel: GroupModel) {
+        if (groupList.firstOrNull { it.id == groupModel.id } != null) {
+            val index = groupList.indexOfFirst { it.id == groupModel.id }
+            groupList[index] = groupModel
+        }
+        adapter.updateData(groupList)
     }
 
 }
