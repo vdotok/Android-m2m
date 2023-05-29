@@ -27,7 +27,6 @@ import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
-import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.*
 import com.vdotok.many2many.utils.TimeUtils.getTimeFromSeconds
@@ -40,7 +39,6 @@ import kotlinx.android.synthetic.main.layout_calling_user.view.*
 import kotlinx.android.synthetic.main.layout_fragment_call.*
 import org.webrtc.VideoTrack
 import java.util.*
-import kotlin.collections.ArrayList
 
 
 const val THRESHOLD_VALUE = 70.0f
@@ -58,12 +56,12 @@ class CallFragment : BaseFragment() {
     private lateinit var binding: LayoutFragmentCallBinding
 
     private lateinit var callClient: CallClient
-    private var groupModel : GroupModel? = null
-    private var name : String? = null
+    private var groupModel: GroupModel? = null
+    private var name: String? = null
     private lateinit var prefs: Prefs
 
     private var userMap = mutableMapOf<String, LayoutCallingUserBinding>()
-    private var userName : ObservableField<String> = ObservableField<String>()
+    private var userName: ObservableField<String> = ObservableField<String>()
     private var groupList = ArrayList<GroupModel>()
 
     private var isMuted = false
@@ -82,7 +80,7 @@ class CallFragment : BaseFragment() {
 
     private var xPoint = 0.0f
     private var yPoint = 0.0f
-    private val listUser =  ArrayList<Participants>()
+    private val listUser = ArrayList<Participants>()
     var isCamSwitch = false
 
     override fun onCreateView(
@@ -118,14 +116,15 @@ class CallFragment : BaseFragment() {
             groupModel = it as GroupModel?
             isIncomingCall = arguments?.get(DialCallFragment.IS_IN_COMING_CALL) as Boolean
         } ?: kotlin.run {
-            groupList = arguments?.getParcelableArrayList<GroupModel>(DialCallFragment.GROUP_LIST) as ArrayList<GroupModel>
+            groupList =
+                arguments?.getParcelableArrayList<GroupModel>(DialCallFragment.GROUP_LIST) as ArrayList<GroupModel>
             name = (arguments?.get(DialCallFragment.USER_NAME) as CharSequence?).toString()
             callParams = arguments?.getParcelable(ApplicationConstants.CALL_PARAMS) as CallParams?
             isIncomingCall = true
         }
-        if (isIncomingCall){
+        if (isIncomingCall) {
             userName.set(getCallTitle(callParams?.customDataPacket.toString()))
-        }else{
+        } else {
             userName.set(groupModel?.groupTitle)
         }
         getIncomingUserName(isVideoCall)
@@ -160,8 +159,11 @@ class CallFragment : BaseFragment() {
             callClient.toggleSpeakerOnOff()
         }
 
-        val callback = object : OnBackPressedCallback(true // default to enabled
-        ) { override fun handleOnBackPressed() {} }
+        val callback = object : OnBackPressedCallback(
+            true // default to enabled
+        ) {
+            override fun handleOnBackPressed() {}
+        }
 
         requireActivity().onBackPressedDispatcher.addCallback(
             this.viewLifecycleOwner,  // LifecycleOwner
@@ -227,7 +229,7 @@ class CallFragment : BaseFragment() {
      * @param videoCall videoCall to check whether its an audio or video call
      * */
     private fun getIncomingUserName(videoCall: Boolean) {
-        if (!videoCall){
+        if (!videoCall) {
             binding.tvCallType.text = getString(R.string.audio_calling)
         } else {
             binding.tvCallType.text = getString(R.string.video_calling)
@@ -262,6 +264,7 @@ class CallFragment : BaseFragment() {
             binding.imgCamera.setImageResource(R.drawable.ic_video_off)
             binding.ivCamSwitch.hide()
             callClient.setSpeakerEnable(false)
+            isSpeakerOff = true
 
         } else {
             isCallTypeAudio = false
@@ -280,6 +283,7 @@ class CallFragment : BaseFragment() {
             binding.ivSpeaker.setImageResource(R.drawable.ic_speaker_on)
             binding.imgCamera.setImageResource(R.drawable.ic_call_video_rounded)
             callClient.setSpeakerEnable(true)
+            isSpeakerOff = false
         }
 
         updateCallUIViews(listUser)
@@ -287,10 +291,26 @@ class CallFragment : BaseFragment() {
 
     private fun initiateView() {
         getVdotok()?.rootEglBaseContext?.let { binding.localView.initiateCallView(it) }
-        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container1.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container2.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container3.remoteView.initiateCallView(it) }
-        getVdotok()?.rootEglBaseContext?.let { binding.containerVideoFrame.container4.remoteView.initiateCallView(it) }
+        getVdotok()?.rootEglBaseContext?.let {
+            binding.containerVideoFrame.container1.remoteView.initiateCallView(
+                it
+            )
+        }
+        getVdotok()?.rootEglBaseContext?.let {
+            binding.containerVideoFrame.container2.remoteView.initiateCallView(
+                it
+            )
+        }
+        getVdotok()?.rootEglBaseContext?.let {
+            binding.containerVideoFrame.container3.remoteView.initiateCallView(
+                it
+            )
+        }
+        getVdotok()?.rootEglBaseContext?.let {
+            binding.containerVideoFrame.container4.remoteView.initiateCallView(
+                it
+            )
+        }
     }
 
     private fun updateCallUIViews(listUser: List<Participants>?) {
@@ -303,7 +323,8 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container3.root.hide()
                 binding.containerVideoFrame.container4.root.hide()
 
-                val params = binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
+                val params =
+                    binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
                 params.endToEnd = binding.containerVideoFrame.containerParent.id
                 params.bottomToBottom = binding.containerVideoFrame.containerParent.id
                 binding.containerVideoFrame.container1.root.layoutParams = params
@@ -320,14 +341,16 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container3.root.hide()
                 binding.containerVideoFrame.container4.root.hide()
 
-                val params = binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
+                val params =
+                    binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
                 params.endToEnd = binding.containerVideoFrame.containerParent.id
                 params.bottomToBottom = binding.containerVideoFrame.centerPoint.id
                 binding.containerVideoFrame.container1.root.layoutParams = params
                 binding.containerVideoFrame.container1.root.requestLayout()
 
 
-                val params2 = binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
+                val params2 =
+                    binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
                 params2.endToEnd = binding.containerVideoFrame.containerParent.id
                 binding.containerVideoFrame.container2.root.layoutParams = params2
                 binding.containerVideoFrame.container2.root.requestLayout()
@@ -345,13 +368,15 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container3.root.show()
                 binding.containerVideoFrame.container4.root.hide()
 
-                val params = binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
+                val params =
+                    binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
                 params.endToEnd = binding.containerVideoFrame.centerPoint.id
                 params.bottomToBottom = binding.containerVideoFrame.centerPoint.id
                 binding.containerVideoFrame.container1.root.layoutParams = params
                 binding.containerVideoFrame.container1.root.requestLayout()
 
-                val params2 = binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
+                val params2 =
+                    binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
                 params2.topToTop = binding.containerVideoFrame.centerPoint.id
                 params2.startToStart = binding.containerVideoFrame.containerParent.id
                 params2.endToEnd = binding.containerVideoFrame.containerParent.id
@@ -368,13 +393,15 @@ class CallFragment : BaseFragment() {
                 binding.containerVideoFrame.container3.root.show()
                 binding.containerVideoFrame.container4.root.show()
 
-                val params = binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
+                val params =
+                    binding.containerVideoFrame.container1.root.layoutParams as ConstraintLayout.LayoutParams
                 params.endToEnd = binding.containerVideoFrame.centerPoint.id
                 params.bottomToBottom = binding.containerVideoFrame.centerPoint.id
                 binding.containerVideoFrame.container1.root.layoutParams = params
                 binding.containerVideoFrame.container1.root.requestLayout()
 
-                val params2 = binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
+                val params2 =
+                    binding.containerVideoFrame.container2.root.layoutParams as ConstraintLayout.LayoutParams
                 params2.endToEnd = binding.containerVideoFrame.centerPoint.id
                 binding.containerVideoFrame.container2.root.layoutParams = params2
                 binding.containerVideoFrame.container2.root.requestLayout()
@@ -452,11 +479,11 @@ class CallFragment : BaseFragment() {
 
                     stream.addSink(container.remoteView.setView())
                 } else {
-                        container?.let {
-                            container = getContainerParticipantView()
-                            userMap[refId] = it
-                            stream.addSink(it.remoteView.setView())
-                        }
+                    container?.let {
+                        container = getContainerParticipantView()
+                        userMap[refId] = it
+                        stream.addSink(it.remoteView.setView())
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("SocketLog", "onStreamAvailable: exception" + e.printStackTrace())
@@ -513,7 +540,7 @@ class CallFragment : BaseFragment() {
     }
 
 
-    private fun getContainerParticipantView() : LayoutCallingUserBinding {
+    private fun getContainerParticipantView(): LayoutCallingUserBinding {
 
         return if (!userMap.containsValue(binding.containerVideoFrame.container1))
             binding.containerVideoFrame.container1
@@ -566,7 +593,8 @@ class CallFragment : BaseFragment() {
             listUser.clear()
             (this.activity as DashBoardActivity).sessionId = null
             Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
     }
 
     override fun onCallEnd() {
@@ -577,7 +605,8 @@ class CallFragment : BaseFragment() {
             listUser.clear()
             (this.activity as DashBoardActivity).sessionId = null
             Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
-        } catch (e: Exception) {}
+        } catch (e: Exception) {
+        }
     }
 
     override fun onParticipantLeftCall(refId: String?) {
@@ -586,7 +615,8 @@ class CallFragment : BaseFragment() {
             view?.let {
                 val participant = listUser.find { it.refId == refId }
                 participant?.let {
-                    listUser.remove(participant) }
+                    listUser.remove(participant)
+                }
                 view.remoteView.hide()
                 view.imgCallOff.show()
                 view.groupAudioCall.show()
@@ -671,7 +701,7 @@ class CallFragment : BaseFragment() {
         }, 1500)
     }
 
-    private fun animateView(xPoint: Float, yPoint: Float){
+    private fun animateView(xPoint: Float, yPoint: Float) {
         binding.localView.animate()
             .x(xPoint)
             .y(yPoint)
@@ -694,7 +724,6 @@ class CallFragment : BaseFragment() {
         val name = Gson().fromJson(customObject, CallNameModel::class.java)
         return name.groupName
     }
-
 
 
 }
