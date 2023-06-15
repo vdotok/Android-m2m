@@ -11,10 +11,12 @@ object ApplicationConstants {
 
 //    SDK AUTH PARAMS
 
-    const val SDK_PROJECT_ID = "Add Your project id here"
+    var SDK_PROJECT_ID = "Add Your project id here"
 
 //    PREFS CONSTANTS
     const val LOGIN_INFO = "savedLoginInfo"
+    const val USER_PROJECT = "USER_PROJECT"
+    const val USER_BASE = "USER_BASE"
 
 //    API ERROR LOG TAGS
     const val API_ERROR = "API_ERROR"

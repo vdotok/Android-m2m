@@ -102,7 +102,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
         binding.customToolbar.imgArrowBack.hide()
 
         binding.customToolbar.imgDone.setOnClickListener {
-            openUserListFragment()
+          openUserListFragment()
         }
 
         binding.btnNewChat.setOnClickListener {
@@ -347,7 +347,7 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
     }
 
     override fun onConnectionFail() {
-        binding.tvLed.setImageResource(R.drawable.led_error)
+      binding.tvLed.setImageResource(R.drawable.led_error)
     }
 
     override fun onParticipantLeftCall(refId: String?) {
@@ -369,16 +369,16 @@ class GroupListingFragment : BaseFragment(), GroupsAdapter.InterfaceOnGroupMenuI
      * @param model model object is used to get username from the list of user achieved from server
      * */
     private fun getUsername(refId: String) : String? {
-        groupList.let {
-            it.forEach { name ->
-                name.participants?.forEach { username->
-                    if (username.refId?.equals(refId) == true) {
-                        user = username.fullname
-                        return user
+       groupList.let {
+                it.forEach { name ->
+                    name.participants?.forEach { username->
+                        if (username.refId?.equals(refId) == true) {
+                            user = username.fullname
+                            return user
+                        }
                     }
                 }
             }
-        }
         return user
     }
 

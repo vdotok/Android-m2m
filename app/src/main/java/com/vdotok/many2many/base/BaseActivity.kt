@@ -63,7 +63,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
     fun initCallClient() {
 
-        CallClient.getInstance(this)?.setConstants(ApplicationConstants.SDK_PROJECT_ID)
+        CallClient.getInstance(this)?.setConstants(prefs.userProjectId.toString())
         CallClient.getInstance(this)?.let {
             callClient = it
             callClient.setListener(this)

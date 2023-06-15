@@ -5,6 +5,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.vdotok.many2many.prefs.Prefs
+import com.vdotok.many2many.utils.ApplicationConstants.SDK_PROJECT_ID
+import com.vdotok.network.utils.Constants
 import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.enums.MediaType
 import org.webrtc.EglBase
@@ -51,12 +53,20 @@ class VdoTok : Application() {
          }
      }
 
+    private fun setVariables() {
+        if (!prefs.userProjectId.isNullOrEmpty() && !prefs.userBaseUrl.isNullOrEmpty()) {
+            Constants.BASE_URL = prefs.userBaseUrl.toString()
+            SDK_PROJECT_ID = prefs.userProjectId.toString()
+        }
+    }
+
    override fun onCreate() {
        super.onCreate()
        vdotok = this
        callClient = CallClient.getInstance(this)!!
        prefs = Prefs(this)
        ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleEventObserver)
+       setVariables()
    }
 
     companion object {

@@ -241,6 +241,7 @@ class DashBoardActivity: BaseActivity() {
         turnMicOff()
         turnSpeakerOff()
         localStream = null
+        Log.e("Mango", "endCall: $sessionId")
         sessionId?.let {
             callClient.endCallSession(arrayListOf(it))
         }
