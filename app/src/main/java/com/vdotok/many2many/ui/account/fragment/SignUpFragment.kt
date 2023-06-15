@@ -33,7 +33,7 @@ import com.vdotok.network.utils.Constants
  *
  * This class display the sign-up form
  */
-class SignUpFragment: Fragment() {
+class SignUpFragment : Fragment() {
 
     private lateinit var binding: LayoutFragmentSignupBinding
     var email: ObservableField<String> = ObservableField<String>()
@@ -69,8 +69,8 @@ class SignUpFragment: Fragment() {
                 it.checkedEmail(email.get().toString()) &&
                 it.checkedPassword(password.get().toString())
             ) {
-                checkUserEmail(email.get().toString())
                 binding.btnSignUp.disable()
+                checkUserEmail(email.get().toString())
             }
         }
 
@@ -78,7 +78,7 @@ class SignUpFragment: Fragment() {
             moveToLogin(it)
         }
 
-        binding.scanner.performSingleClick{
+        binding.scanner.performSingleClick {
             activity?.runOnUiThread {
                 qrCodeScannerLauncher.launch(IntentIntegrator.forSupportFragment(this))
             }
@@ -111,13 +111,14 @@ class SignUpFragment: Fragment() {
                                 binding.root.showSnackBar(getString(R.string.no_network_available))
                             else
                                 binding.root.showSnackBar(it.exception.message)
-                            binding.btnSignIn.enable()
+                            binding.btnSignUp.enable()
                         }
                     }
 
                 }
             } else {
-                binding.root.showSnackBar("Kindly scan QR code to setup project")
+                binding.root.showSnackBar(getString(R.string.api_url_empty))
+                binding.btnSignUp.enable()
             }
         }
     }
@@ -162,9 +163,11 @@ class SignUpFragment: Fragment() {
                             binding.root.showSnackBar(it.exception.message)
                     }
                 }
+                binding.btnSignUp.enable()
             }
         } else {
-            binding.root.showSnackBar("Kindly scan QR code to setup project")
+            binding.root.showSnackBar(getString(R.string.api_url_empty))
+            binding.btnSignUp.enable()
         }
     }
 
