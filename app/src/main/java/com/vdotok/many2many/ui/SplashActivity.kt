@@ -21,8 +21,8 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStatusBarGradient(this, R.drawable.ic_account_gradient_bg)
         startService(Intent(this, OnClearFromRecentService::class.java))
+        setStatusBarGradient(this, R.drawable.ic_account_gradient_bg)
         init()
 
     }

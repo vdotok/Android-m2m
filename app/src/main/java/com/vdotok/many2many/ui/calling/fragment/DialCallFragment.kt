@@ -1,6 +1,5 @@
 package com.vdotok.many2many.ui.calling.fragment
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -12,19 +11,19 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.ObservableField
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.findNavController
 import com.google.gson.Gson
 import com.vdotok.many2many.R
-import com.vdotok.many2many.base.BaseActivity
 import com.vdotok.many2many.base.BaseFragment
 import com.vdotok.many2many.databinding.FragmentDialCallBinding
 import com.vdotok.many2many.extensions.hide
 import com.vdotok.many2many.extensions.launchPeriodicAsync
 import com.vdotok.many2many.extensions.show
 import com.vdotok.many2many.extensions.showSnackBar
+import com.vdotok.many2many.models.AcceptCallModel
 import com.vdotok.many2many.models.CallNameModel
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.ui.calling.CallActivity
+import com.vdotok.many2many.ui.dashboard.DashBoardActivity
 import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.many2many.utils.performSingleClick
 import com.vdotok.network.models.GroupModel
@@ -87,7 +86,7 @@ class DialCallFragment : BaseFragment() {
                 test++
                 if (test >= 2) {
                     activity?.runOnUiThread {
-                      rejectCall()
+                        rejectCall()
                     }
                     timerFro30sec?.cancel()
                 }
@@ -95,18 +94,6 @@ class DialCallFragment : BaseFragment() {
         }
 
         return binding.root
-    }
-
-    private fun timeOutCall() {
-
-        if (isIncomingCall) {
-            prefs.loginInfo?.let {
-                callParams?.let { it1 ->
-                    callClient.callTimeout(it.refId.toString(), it1.sessionUUID)
-                }
-            }
-            activity?.finish()
-        }
     }
 
     var test = 0
@@ -130,7 +117,7 @@ class DialCallFragment : BaseFragment() {
             groupModel = it as GroupModel?
         } ?: kotlin.run {
             groupList = arguments?.getParcelableArrayList<GroupModel>(GROUP_LIST) as ArrayList<GroupModel>
-            callParams = arguments?.get(ApplicationConstants.CALL_PARAMS) as CallParams?
+            callParams = arguments?.get(AcceptCallModel.TAG) as CallParams?
             username = getCallTitle(callParams?.customDataPacket.toString())
         }
     }
@@ -143,6 +130,7 @@ class DialCallFragment : BaseFragment() {
      * Function to set data when outgoing call dial is implemented and setonClickListener
      * */
     private fun setDataForDialCall() {
+
         userName.set(groupModel?.groupTitle)
         binding.imgCallAccept.hide()
         binding.imgmic.show()
@@ -154,6 +142,7 @@ class DialCallFragment : BaseFragment() {
         }
 
     }
+
 
     /**
      * Function to set data when incoming call dial is implemented and setonClickListener
@@ -189,13 +178,16 @@ class DialCallFragment : BaseFragment() {
             prefs.loginInfo?.let {
                 callParams?.let { it1 -> callClient.rejectIncomingCall(
                     it.refId!!,
-                    it1.sessionUUID)
+                    it1.sessionUuid)
                 }
             }
-            activity?.finish()
+            (activity as DashBoardActivity).dialCallOpen = false
+            Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
         } else {
-            (activity as CallActivity).endCall()
+            (activity as DashBoardActivity).dialCallOpen = false
+            (activity as DashBoardActivity).endCall()
         }
+        player?.stop()
     }
     /**
      * Function to be call when incoming dial call is accepted
@@ -203,22 +195,19 @@ class DialCallFragment : BaseFragment() {
     private fun acceptIncomingCall() {
 
         callParams?.let {
-            (activity as CallActivity).acceptIncomingCall(it)
+
+            (activity as DashBoardActivity).acceptIncomingCall(it)
             openCallFragment()
         }
         timerFro30sec?.cancel()
     }
 
-    override fun onDetach() {
+    override fun onDestroyView() {
         timerFro30sec?.cancel()
-        super.onDetach()
-        player?.stop()
-    }
-
-    override fun onDestroy() {
-        timerFro30sec?.cancel()
+        (activity as DashBoardActivity).dialCallOpen = false
         super.onDestroy()
         player?.stop()
+        super.onDestroyView()
     }
 
     /**
@@ -255,13 +244,17 @@ class DialCallFragment : BaseFragment() {
                 bundle.putParcelable(GroupModel.TAG, groupModel)
                 bundle.putBoolean(IS_VIDEO_CALL, isVideoCall)
                 bundle.putBoolean(IS_IN_COMING_CALL, false)
-                Navigation.findNavController(binding.root).navigate(R.id.action_open_call_fragment, bundle)
+                Navigation.findNavController(binding.root).navigate(
+                    R.id.action_open_call_fragment,
+                    bundle
+                )
             }
         }
     }
 
     override fun outGoingCall(toPeer: GroupModel) {
         closeFragmentWithMessage("Call Missed!")
+        (activity as DashBoardActivity).dialCallOpen = false
     }
 
     override fun onRemoteStreamReceived(stream: VideoTrack, refId: String, sessionID: String) {}
@@ -275,6 +268,7 @@ class DialCallFragment : BaseFragment() {
 
     override fun onCallerAlreadyBusy() {
         closeFragmentWithMessage("Target is busy!")
+        (activity as DashBoardActivity).dialCallOpen = false
     }
 
     override fun noAnsFromTarget() {
@@ -285,20 +279,25 @@ class DialCallFragment : BaseFragment() {
 
     override fun onCallMissed() {
        closeFragmentWithMessage("Call Missed!")
+        (activity as DashBoardActivity).dialCallOpen = false
+    }
+
+    override fun onCallEnd() {
+        closeFragmentWithMessage("Call Ended!")
+        (activity as DashBoardActivity).dialCallOpen = false
+        player?.stop()
+
     }
 
     override fun onInsuficientBalance() {
         closeFragmentWithMessage("Insufficient Balance!")
-    }
-
-    override fun onCallEnd() {
-        activity?.finish()
+        (activity as DashBoardActivity).dialCallOpen = false
     }
 
     private fun closeFragmentWithMessage(message: String?) {
         activity?.runOnUiThread {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            onCallEnd()
+            Navigation.findNavController(binding.root).navigate(R.id.action_open_groupList)
         }
     }
 }

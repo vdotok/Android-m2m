@@ -24,12 +24,15 @@ import com.vdotok.network.models.GroupModel
 import com.vdotok.network.models.UpdateGroupNameModel
 import retrofit2.HttpException
 
-class UpdateGroupNameDialog(private val groupModel: GroupModel, private val updateGroup : () -> Unit) : DialogFragment(){
+class UpdateGroupNameDialog(
+    private val groupModel: GroupModel,
+    private val callbacks: UpdateGroupCallbacks
+) : DialogFragment() {
 
     private lateinit var binding: UpdateGroupNameBinding
     private lateinit var prefs: Prefs
     var edtGroupName = ObservableField<String>()
-    private val viewModelGroup : GroupViewModel by viewModels()
+    private val viewModelGroup: GroupViewModel by viewModels()
 
 
     init {
@@ -62,8 +65,6 @@ class UpdateGroupNameDialog(private val groupModel: GroupModel, private val upda
                 model.groupId = groupModel.id
                 model.groupTitle = edtGroupName.get()
                 editGroup(model)
-                dismiss()
-                updateGroup.invoke()
             } else {
                 binding.root.showSnackBar(R.string.group_name_empty)
             }
@@ -73,11 +74,13 @@ class UpdateGroupNameDialog(private val groupModel: GroupModel, private val upda
     }
 
     private fun editGroup(model: UpdateGroupNameModel) {
-        viewModelGroup.updateGroupName(this.prefs, model).observe(viewLifecycleOwner, {
+        viewModelGroup.updateGroupName(this.prefs, model).observe(viewLifecycleOwner) {
             try {
                 when (it) {
                     is com.vdotok.network.network.Result.Success -> {
+                        callbacks.groupRenameSuccess(it.data.groupModel)
                         binding.root.showSnackBar(getString(R.string.updated_group))
+                        dismiss()
                     }
                     is com.vdotok.network.network.Result.Failure -> {
                         if (isInternetAvailable(activity as Context).not())
@@ -85,6 +88,7 @@ class UpdateGroupNameDialog(private val groupModel: GroupModel, private val upda
                         else
                             binding.root.showSnackBar(it.exception.message)
                     }
+                    else -> {}
                 }
                 binding.progressBar.toggleVisibility()
 
@@ -93,11 +97,15 @@ class UpdateGroupNameDialog(private val groupModel: GroupModel, private val upda
             } catch (e: Throwable) {
                 Log.e(ApplicationConstants.API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        })
+        }
 
     }
 
-    companion object{
+    interface UpdateGroupCallbacks {
+        fun groupRenameSuccess(groupModel: GroupModel)
+    }
+
+    companion object {
         const val UPDATE_GROUP_TAG = "UPDATE_GROUP_DIALOG"
     }
 

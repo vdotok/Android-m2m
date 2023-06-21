@@ -8,14 +8,13 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.MutableLiveData
 import com.google.android.material.snackbar.Snackbar
 import com.vdotok.many2many.prefs.Prefs
 import com.vdotok.many2many.utils.NetworkStatusLiveData
+import com.vdotok.network.models.LoginResponse
 import com.vdotok.many2many.extensions.showSnackBar
 import com.vdotok.many2many.ui.calling.CallActivity
 import com.vdotok.many2many.utils.ApplicationConstants
-import com.vdotok.network.models.LoginResponse
 import com.vdotok.streaming.CallClient
 import com.vdotok.streaming.commands.CallInfoResponse
 import com.vdotok.streaming.commands.RegisterResponse
@@ -48,6 +47,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
         var mListener: FragmentCallback? = null
         var localStream: VideoTrack? = null
         var remoteStream: VideoTrack? = null
+        const val Session_ID = "session_id"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +63,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
     fun initCallClient() {
 
-        CallClient.getInstance(this)?.setConstants(ApplicationConstants.SDK_PROJECT_ID)
+        CallClient.getInstance(this)?.setConstants(prefs.userProjectId.toString())
         CallClient.getInstance(this)?.let {
             callClient = it
             callClient.setListener(this)
@@ -77,7 +77,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
 
     fun connectClient() {
         prefs.loginInfo?.mediaServer?.let {
-            if (callClient.isConnected() == null || callClient.isConnected() == false)
+            if (!callClient.isConnected())
                 callClient.connect(getMediaServerAddress(it), it.endPoint)
         }
     }
@@ -93,70 +93,22 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
     override fun onPublicURL(publicURL: String) {}
 
 
-    override fun onSessionReady(mediaProjection: MediaProjection?) {}
-
-    override fun multiSessionCreated(sessionIds: Pair<String, String>) {}
-
     override fun audioVideoState(state: SessionStateInfo) {
         runOnUiThread {
             mListener?.onAudioVideoStateChanged(state.audioState!!, state.videoState!!)
         }
     }
 
+    override fun onSessionReady(mediaProjection: MediaProjection?) {
+
+    }
+
+    override fun multiSessionCreated(sessionIds: Pair<String, String>) {
+
+    }
+
+
     override fun callStatus(callInfoResponse: CallInfoResponse) {
-        runOnUiThread {
-            when (callInfoResponse.callStatus) {
-                    CallStatus.CALL_CONNECTED -> {
-                        mListener?.onStartCalling()
-                    }
-                    CallStatus.SERVICE_SUSPENDED,
-                    CallStatus.OUTGOING_CALL_ENDED,
-                    CallStatus.NO_SESSION_EXISTS -> {
-                        sessionId?.let {
-                            if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity) {
-                                turnMicOff()
-                                turnSpeakerOff()
-                                mLiveDataEndCall.postValue(true)
-                            }
-                    }
-                    }
-                    CallStatus.CALL_REJECTED,
-                    CallStatus.PARTICIPANT_LEFT_CALL -> {
-                      callInfoResponse.callParams?.refId?.let {
-                            if (it.isNotEmpty()) {
-                                mListener?.onCallRejected(it)
-                            }
-                            else {
-                                callInfoResponse.callParams?.toRefIds?.get(0)?.let {
-                                    mListener?.onCallRejected(it)
-                                }
-                            }
-                        }
-                    }
-                    CallStatus.CALL_MISSED -> {
-                       sessionId?.let {
-                            if (callClient.getActiveSessionClient(it) == null && this@BaseActivity is CallActivity)
-                                mLiveDataEndCall.postValue(true)
-                        } ?: kotlin.run {
-                            mListener?.onCallMissed()
-                        }
-                    }
-                    CallStatus.NO_ANSWER_FROM_TARGET -> {
-                        mListener?.noAnsFromTarget()
-                    }
-                    CallStatus.TARGET_IS_BUSY -> {
-                        mListener?.onCallerAlreadyBusy()
-                    }
-                    CallStatus.SESSION_TIMEOUT -> {
-                        mListener?.onCallTimeout()
-                    }
-                    CallStatus.INSUFFICIENT_BALANCE -> {
-                        mListener?.onInsuficientBalance()
-                    }
-                    else -> {
-                    }
-                }
-        }
     }
 
     override fun connectionStatus(enumConnectionStatus: EnumConnectionStatus) {
@@ -180,6 +132,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
             EnumConnectionStatus.NOT_CONNECTED -> {
                 mListener?.onConnectionFail()
                 connectClient()
+
                 runOnUiThread {
                     Toast.makeText(this, "Not Connected!", Toast.LENGTH_SHORT).show()
                 }
@@ -192,6 +145,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                 }
             }
             EnumConnectionStatus.CLOSED -> {
+                mListener?.onConnectionFail()
                 runOnUiThread {
                     Toast.makeText(this, "Connection Closed!", Toast.LENGTH_SHORT).show()
                 }
@@ -211,6 +165,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
     }
 
     override fun registrationStatus(registerResponse: RegisterResponse) {
+
         when (registerResponse.registrationStatus) {
             RegistrationStatus.REGISTER_SUCCESS -> {
 
@@ -221,6 +176,7 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                         prefs.loginInfo = it
                     }
                     Log.e("register", "message: ${registerResponse.responseMessage}")
+
                     getRootView().showSnackBar("Socket Connected!")
                     callClient.initiateReInviteProcess()
                 }
@@ -295,18 +251,16 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
         }
     }
 
-    override fun sessionReconnecting(sessionID: String) {
-    }
-
     override fun sessionHold(sessionUUID: String) {
     }
 
     fun addInternetConnectionObserver() {
         mLiveDataNetwork = NetworkStatusLiveData(this.application)
 
-        mLiveDataNetwork.observe(this, { isInternetConnected ->
+        mLiveDataNetwork.observe(this) { isInternetConnected ->
             when {
                 isInternetConnected == true && isInternetConnectionRestored && !isResumeState -> {
+                    mListener?.onConnectionSuccess()
                     Log.e("Internet", "internet connection restored!")
                     performSocketReconnection()
                 }
@@ -314,12 +268,13 @@ abstract class BaseActivity: AppCompatActivity(), CallSDKListener {
                     isInternetConnectionRestored = true
                     reConnectStatus = true
                     isResumeState = false
+                    mListener?.onConnectionFail()
                     Log.e("Internet", "internet connection lost!")
                 }
                 else -> {
                 }
             }
-        })
+        }
     }
 
     private fun performSocketReconnection() {

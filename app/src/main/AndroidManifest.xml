@@ -9,19 +9,10 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
 
     <application
-        android:allowBackup="false"
         android:name=".VdoTok"
+        android:allowBackup="false"
         android:icon="@drawable/logo_main"
         android:label="@string/app_name"
         android:roundIcon="@drawable/logo_main"
@@ -29,6 +20,7 @@
         android:theme="@style/Theme.VdoTokCall_MTM"
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
+
         <service android:name=".service.OnClearFromRecentService" />
         <activity
             android:name=".ui.dashboard.DashBoardActivity"
@@ -43,6 +35,12 @@
             android:name=".ui.calling.CallActivity"
             android:theme="@style/Theme.AccountScreen"
             android:screenOrientation="portrait" />
+
+        <activity
+            android:name="com.journeyapps.barcodescanner.CaptureActivity"
+            android:screenOrientation="portrait"
+            tools:replace="android:screenOrientation"
+            android:stateNotNeeded="true"/>
 
         <activity
             android:name=".ui.SplashActivity"

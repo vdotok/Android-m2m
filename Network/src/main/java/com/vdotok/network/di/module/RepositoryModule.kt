@@ -1,7 +1,7 @@
 package com.vdotok.network.di.module
 
-import com.vdotok.network.repository.AccountRepository
 import com.vdotok.network.network.api.ApiService
+import com.vdotok.network.repository.AccountRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

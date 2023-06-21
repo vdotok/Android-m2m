@@ -161,7 +161,7 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
      * */
     private fun createGroupApiCall(model: CreateGroupModel) {
 
-        viewModelGroup.createGroup(this.prefs, model).observe(viewLifecycleOwner, {
+        viewModelGroup.createGroup(this.prefs, model).observe(viewLifecycleOwner) {
             try {
                 when (it) {
                     is Result.Loading -> {
@@ -169,7 +169,8 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
                     }
                     is Result.Success -> {
                         binding.progressBar.toggleVisibility()
-                        Snackbar.make(binding.root, R.string.group_created, Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.root, R.string.group_created, Snackbar.LENGTH_LONG)
+                            .show()
                         handleCreateGroupSuccess(it.data)
                     }
                     is Result.Failure -> {
@@ -186,7 +187,7 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
             } catch (e: Throwable) {
                 Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        })
+        }
 
 //        activity?.let {
 //            binding.progressBar.toggleVisibility()
@@ -277,7 +278,7 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
      * */
     private fun getAllUsers() {
 
-        listViewModel.getAllUsers(this.prefs).observe(viewLifecycleOwner, {
+        listViewModel.getAllUsers(this.prefs).observe(viewLifecycleOwner) {
             try {
                 when (it) {
                     is com.vdotok.network.network.Result.Loading -> {
@@ -307,7 +308,7 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
             } catch (e: Throwable) {
                 Log.e(API_ERROR, "AllUserList: ${e.printStackTrace()}")
             }
-        })
+        }
 
 
     }
@@ -332,7 +333,9 @@ class UserListFragment : Fragment(), OnInboxItemClickCallbackListener {
      * Function to display all users
      * */
     private fun populateDataToList(response: GetAllUsersResponseModel) {
-        adapter.updateData(response.users)
+        val list = response.users as ArrayList<UserModel>
+        list.removeIf { it.refId == prefs.loginInfo?.refId }
+        adapter.updateData(list)
     }
 
     /**

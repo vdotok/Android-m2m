@@ -1,6 +1,7 @@
 package com.vdotok.many2many.ui.account.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,16 +9,18 @@ import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.Navigation
+import com.google.gson.Gson
+import com.google.zxing.integration.android.IntentIntegrator
 import com.vdotok.many2many.R
 import com.vdotok.many2many.databinding.LayoutFragmentLoginBinding
-import com.vdotok.many2many.extensions.checkValidation
-import com.vdotok.many2many.extensions.checkedPassword
-import com.vdotok.many2many.extensions.showSnackBar
-import com.vdotok.many2many.extensions.toggleVisibility
+import com.vdotok.many2many.extensions.*
+import com.vdotok.many2many.models.QRCodeModel
 import com.vdotok.many2many.prefs.Prefs
+import com.vdotok.many2many.ui.account.viewmodel.AccountViewModel
 import com.vdotok.many2many.utils.*
+import com.vdotok.many2many.utils.ApplicationConstants.SDK_PROJECT_ID
 import com.vdotok.network.network.Result
-import com.vdotok.many2many.feature.account.viewmodel.AccountViewModel
+import com.vdotok.network.utils.Constants.BASE_URL
 
 
 /**
@@ -26,11 +29,11 @@ import com.vdotok.many2many.feature.account.viewmodel.AccountViewModel
  *
  * This class displays the sign-in form to get in application
  */
-class LoginFragment: Fragment() {
+class LoginFragment : Fragment() {
 
     private lateinit var binding: LayoutFragmentLoginBinding
-    var email : ObservableField<String> = ObservableField<String>()
-    var password : ObservableField<String> = ObservableField<String>()
+    var email: ObservableField<String> = ObservableField<String>()
+    var password: ObservableField<String> = ObservableField<String>()
     private lateinit var prefs: Prefs
     private val viewModel: AccountViewModel by viewModels()
 
@@ -56,12 +59,14 @@ class LoginFragment: Fragment() {
 
         prefs = Prefs(activity)
 
-        binding.btnSignIn.setOnClickListener {
-            if (it.checkedPassword(password.get().toString()) && checkValidation(it, email.get().toString())) {
-                loginUser(email.get().toString(), password.get().toString())
-                binding.btnSignIn.disable()
+        binding.scanner.performSingleClick {
+            activity?.runOnUiThread {
+                qrCodeScannerLauncher.launch(IntentIntegrator.forSupportFragment(this))
             }
         }
+
+        binding.btnSignIn.setOnClickListener { validateAndLogin() }
+
         binding.btnSignUp.setOnClickListener {
             Navigation.findNavController(it).navigate(R.id.action_move_to_signup_user)
         }
@@ -74,28 +79,84 @@ class LoginFragment: Fragment() {
      * @param password password object we will be sending to the server
      * */
     private fun loginUser(email: String, password: String) {
-
-        viewModel.loginUser(email, password).observe(viewLifecycleOwner) {
-            when (it) {
-                is Result.Loading -> {
-                    binding.progressBar.toggleVisibility()
-                }
-                is Result.Success ->  {
-                    binding.btnSignIn.enable()
-                    binding.progressBar.toggleVisibility()
-                    handleLoginResponse(requireContext(), it.data, prefs, binding.root)
-                }
-                is Result.Failure -> {
-                    binding.btnSignIn.enable()
-                    binding.progressBar.toggleVisibility()
-//                    if (it.exception.responseCode == ApplicationConstants.HTTP_CODE_NO_NETWORK) {
-//                        binding.root.showSnackBar(getString(R.string.no_network_available))
-//                    else
-                        binding.root.showSnackBar(it.exception.message)
-                }
+        activity?.let { it ->
+            if (SDK_PROJECT_ID.isNotEmpty() && BASE_URL.isNotEmpty()) {
+                viewModel.loginUser(email, password, projectId = SDK_PROJECT_ID)
+                    .observe(viewLifecycleOwner) {
+                        when (it) {
+                            Result.Loading -> {
+                                binding.progressBar.toggleVisibility()
+                            }
+                            is Result.Success -> {
+                                binding.progressBar.toggleVisibility()
+                                handleLoginResponse(requireContext(), it.data, prefs, binding.root)
+                                binding.btnSignIn.enable()
+                            }
+                            is Result.Failure -> {
+                                binding.progressBar.toggleVisibility()
+                                if (isInternetAvailable(this@LoginFragment.requireContext()).not())
+                                    binding.root.showSnackBar(getString(R.string.no_network_available))
+                                else
+                                    binding.root.showSnackBar(it.exception.message)
+                                binding.btnSignIn.enable()
+                            }
+                        }
+                    }
+            } else {
+                binding.root.showSnackBar(getString(R.string.api_url_empty))
+                binding.btnSignIn.enable()
             }
-        }
 
+        }
     }
 
+    private fun checkValidationForEmail() {
+        val view = binding.btnSignIn
+        if (view.checkedPassword(password.get().toString()) && view.checkedEmail(
+                email.get().toString()
+            )
+        ) {
+            loginAction()
+        }
+    }
+
+    private val qrCodeScannerLauncher = registerForActivityResult(QrCodeScannerContract()) {
+        if (!it.contents.isNullOrEmpty()) {
+            Log.e("RESULT_INTENT", it.contents)
+            val data: QRCodeModel? = Gson().fromJson(it.contents, QRCodeModel::class.java)
+            prefs.userProjectId = data?.project_id.toString().trim()
+            prefs.userBaseUrl = data?.tenant_api_url.toString().trim()
+            if (!prefs.userProjectId.isNullOrEmpty() && !prefs.userBaseUrl.isNullOrEmpty()) {
+                SDK_PROJECT_ID = prefs.userProjectId.toString().trim()
+                BASE_URL = prefs.userBaseUrl.toString().trim()
+            }
+            Log.d("RESULT_INTENT", data.toString())
+        } else {
+            binding.root.showSnackBar("QR CODE is not correct!!!")
+        }
+    }
+
+
+    private fun validateAndLogin() {
+        val inputText = email.get().toString()
+
+        when {
+            binding.root.checkedEmail(inputText) -> checkValidationForEmail()
+            else -> checkValidationForUsername()
+        }
+    }
+
+    private fun checkValidationForUsername() {
+        if (binding.root.checkedPassword(password.get().toString()) && binding.root.checkedUserName(
+                email.get().toString()
+            )
+        ) {
+            loginAction()
+        }
+    }
+
+    private fun loginAction() {
+        binding.btnSignIn.disable()
+        loginUser(email.get().toString(), password.get().toString())
+    }
 }

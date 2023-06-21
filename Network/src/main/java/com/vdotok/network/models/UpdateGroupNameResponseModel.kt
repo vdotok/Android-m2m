@@ -20,6 +20,9 @@ data class UpdateGroupNameResponseModel (
     var processTime: Int,
 
     @SerializedName("status")
-    var status: Int
+    var status: Int,
 
-): Parcelable
+    @SerializedName("group")
+    var groupModel: GroupModel,
+
+    ): Parcelable

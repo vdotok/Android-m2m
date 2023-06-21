@@ -135,15 +135,14 @@
                 app:layout_constraintEnd_toEndOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-        <com.vdotok.streaming.views.CallViewRenderer
+        <com.vdotok.many2many.utils.CustomCallView
             android:id="@+id/localView"
             android:layout_width="130dp"
             android:layout_height="170dp"
             android:elevation="20dp"
+            android:keepScreenOn="true"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="20dp"
-            android:keepScreenOn="true"
             android:layout_marginBottom="130dp"
             android:focusable="true"
             app:avatar="@drawable/ic_user_icon"

@@ -1,8 +1,7 @@
-package com.vdotok.many2many.feature.account.viewmodel
+package com.vdotok.many2many.ui.account.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
-import com.vdotok.many2many.utils.ApplicationConstants
 import com.vdotok.network.di.module.RetrofitModule
 import com.vdotok.network.models.EmailModel
 import com.vdotok.network.models.LoginUserModel
@@ -11,14 +10,13 @@ import com.vdotok.network.network.Result
 import com.vdotok.network.repository.AccountRepository
 
 
-class AccountViewModel: ViewModel() {
+class AccountViewModel : ViewModel() {
 
-    fun loginUser(email: String, password: String) = liveData {
-
-            val service = RetrofitModule.provideRetrofitService()
-            val repo = AccountRepository(service)
-            emit(Result.Loading)
-            emit(repo.login(LoginUserModel(email, password, ApplicationConstants.SDK_PROJECT_ID)))
+    fun loginUser(email: String, password: String, projectId: String) = liveData {
+        val service = RetrofitModule.provideRetrofitService()
+        val repo = AccountRepository(service)
+        emit(Result.Loading)
+        emit(repo.login(LoginUserModel(email, password, projectId)))
     }
 
 
