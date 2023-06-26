@@ -138,21 +138,16 @@ class LoginFragment : Fragment() {
 
 
     private fun validateAndLogin() {
-        val inputText = email.get().toString()
 
-        when {
-            binding.root.checkedEmail(inputText) -> checkValidationForEmail()
-            else -> checkValidationForUsername()
-        }
-    }
-
-    private fun checkValidationForUsername() {
-        if (binding.root.checkedPassword(password.get().toString()) && binding.root.checkedUserName(
+        if (binding.root.checkedPassword(password.get().toString()) && checkValidation(
+                binding.root,
                 email.get().toString()
             )
         ) {
-            loginAction()
+            binding.btnSignIn.disable()
+            loginUser(email.get().toString(), password.get().toString())
         }
+
     }
 
     private fun loginAction() {
